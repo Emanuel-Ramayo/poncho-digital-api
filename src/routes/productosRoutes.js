@@ -1,12 +1,12 @@
 import express from "express";
 import {
-  listarArtesanos,
-  obtenerArtesano
-} from "../controllers/artesanosController.js";
+  listarProductos,
+  obtenerProducto
+} from "../controllers/productosController.js";
 
 const router = express.Router();
 
-router.get("/", listarArtesanos);
-router.get("/:id", obtenerArtesano);
+router.get("/", listarProductos);
+router.get("/:id", obtenerProducto);
 
 export default router;
