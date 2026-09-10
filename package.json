@@ -1,4 +1,5 @@
 {
+
   "name": "poncho-digital-api",
   "version": "1.0.0",
   "description": "",
@@ -18,5 +19,13 @@
   "bugs": {
     "url": "https://github.com/Emanuel-Ramayo/poncho-digital-api/issues"
   },
-  "homepage": "https://github.com/Emanuel-Ramayo/poncho-digital-api#readme"
+  "homepage": "https://github.com/Emanuel-Ramayo/poncho-digital-api#readme",
+
+  "devDependencies": {                                                                  
+    "nodemon": "^3.1.14"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+
 }
