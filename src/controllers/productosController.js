@@ -1,5 +1,6 @@
 import productos from "../data/productos.js";
 import { crearError } from "../utils/errores.js";
+import { nextId } from "../utils/nextId.js";
 
 //GET - /api/productos
 export const listarProductos = (req, res) => {
