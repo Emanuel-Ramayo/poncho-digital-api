@@ -1,4 +1,6 @@
 import postulaciones from "../data/postulaciones.js";
+import { crearError } from "../utils/errores.js"; 
+import { nextId } from "../utils/nextId.js";  
 
 export const listarPostulaciones = (req, res) => {
   res.json(postulaciones);

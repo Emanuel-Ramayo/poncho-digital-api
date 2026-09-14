@@ -1,6 +1,6 @@
 import artesanos from "../data/artesanos.js";
 import { crearError } from "../utils/errores.js";
-import { nextId } from "../utils/nextId.js";
+import { nextId } from "../utils/generadorId.js";
 
 //GET - /api/artesanos
 export const listarArtesanos = (req, res) => {
