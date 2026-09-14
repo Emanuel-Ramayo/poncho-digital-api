@@ -28,7 +28,7 @@ export const crearPostulacion = (req, res, next) => {
   }
   
   const nuevaPostulacion = { 
-    id: generarId(postulaciones), 
+    id: nextId(postulaciones), 
     artesanoId, 
     standId, 
     estado, 
