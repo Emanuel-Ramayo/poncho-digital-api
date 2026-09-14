@@ -27,7 +27,7 @@ export const crearStand = (req, res) => {
 if (!numero || !ubicacion || !disponible ) {
     return next(crearError("Todos los campos son obligatorios", 400));
   }
-  const nuevoStand = { id: nextId(), numero, ubicacion, disponible };
+  const nuevoStand = { id: nextId(stands), numero, ubicacion, disponible };
   stands.push(nuevoStand);
   res.status(201).json(nuevoStand);
 };

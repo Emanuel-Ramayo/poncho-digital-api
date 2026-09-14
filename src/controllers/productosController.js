@@ -24,7 +24,7 @@ export const crearProducto = (req, res, next) => {
   if (!nombre || !categoria || !precio || !artesanoId) {
     return next(crearError("Todos los campos son obligatorios", 400));
   }
-  const nuevoProducto = { id: nextId(), nombre, categoria, precio, artesanoId };
+  const nuevoProducto = { id: nextId(productos), nombre, categoria, precio, artesanoId };
   productos.push(nuevoProducto);
   res.status(201).json(nuevoProducto);
 };

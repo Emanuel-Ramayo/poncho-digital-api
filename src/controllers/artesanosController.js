@@ -26,7 +26,7 @@ export const crearArtesano = (req, res,next) => {
   if (!nombre || !especialidad || !localidad) {
     return next(crearError("Todos los campos son obligatorios", 400));
   }
-  const nuevoArtesano = {id:nextId(), nombre, especialidad, localidad};
+  const nuevoArtesano = {id:nextId(artesanos), nombre, especialidad, localidad};
   artesanos.push(nuevoArtesano);
   res.status(201).json(nuevoArtesano);      
 }
