@@ -1,6 +1,6 @@
 import postulaciones from "../data/postulaciones.js";
 import { crearError } from "../utils/errores.js"; 
-import { nextId } from "../utils/nextId.js";  
+import { nextId } from "../utils/generadorId.js";  
 
 // GET - /api/postulaciones
 export const listarPostulaciones = (req, res) => {
