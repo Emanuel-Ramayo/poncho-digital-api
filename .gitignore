@@ -34,3 +34,8 @@ dist/
 build/
 coverage/
 >>>>>>> Ezequiel/datos-endpoints
+
+/generated/prisma
+.agents
+.claude
+.windsurf
