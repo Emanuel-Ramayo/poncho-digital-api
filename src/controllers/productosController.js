@@ -1,60 +1,129 @@
-import productos from "../data/productos.js";
+import prisma from "../config/prisma.js";
 import { crearError } from "../utils/errores.js";
-import { nextId } from "../utils/generadorId.js";
 
-//GET - /api/productos
-export const listarProductos = (req, res) => {
-  res.json(productos);
-};
-//GET - /api/productos/:id
-export const obtenerProducto = (req, res, next) => {
-  const id = req.id;
+// GET /productos
+export const listarProductos = async (req, res, next) => {
+  try {
+    const productos = await prisma.producto.findMany({
+      orderBy: { id: "asc" },
+      include: {
+        categoria: true,
+        artesano: true
+      }
+    });
 
-  const producto = productos.find((producto) => producto.id === id);
-
-  if (!producto) {
-    return next(crearError("Producto no encontrado", 404));
+    res.json(productos);
+  } catch (error) {
+    next(error);
   }
-  res.json(producto);
-};
-
-//POST - /api/productos
-export const crearProducto = (req, res, next) => {
-  const { nombre, categoria, precio, artesanoId } = req.body;
-  if (!nombre || !categoria || !precio || !artesanoId) {
-    return next(crearError("Todos los campos son obligatorios", 400));
-  }
-  const nuevoProducto = { id: nextId(productos), nombre, categoria, precio, artesanoId };
-  productos.push(nuevoProducto);
-  res.status(201).json(nuevoProducto);
 };
 
-//PUT - /api/productos/:id
-export const actualizarProducto = (req, res, next) => {
-  const producto = productos.find((producto) => producto.id === req.id);
-  if (!producto) {
-    return next(crearError("Producto no encontrado", 404));
+// GET /productos/:id
+export const obtenerProducto = async (req, res, next) => {
+  try {
+    const id = req.id;
+
+    const producto = await prisma.producto.findUnique({
+      where: { id },
+      include: {
+        categoria: true,
+        artesano: true
+      }
+    });
+
+    if (!producto) {
+      return next(crearError("Producto no encontrado", 404));
+    }
+
+    res.json(producto);
+  } catch (error) {
+    next(error);
   }
-  const { nombre, categoria, precio, artesanoId } = req.body;
-  if (!nombre || !categoria || !precio || !artesanoId) {
-    return next(crearError("Todos los campos son obligatorios", 400));
-  }
-  producto.nombre = nombre;
-  producto.categoria = categoria;
-  producto.precio = precio;
-  producto.artesanoId = artesanoId;
-  res.json(producto);
-  res.status(200).json({ message: "Producto actualizado correctamente" });
 };
 
-//DELETE - /api/productos/:id
-export const eliminarProducto = (req, res, next) => {
-  const index = productos.findIndex((producto) => producto.id === req.id);
+// POST /productos
+export const crearProducto = async (req, res, next) => {
+  try {
+    const { nombre, descripcion, precio, categoria_id, artesano_id } = req.body;
 
-  if (index === -1) {
-    return next(crearError("Producto no encontrado", 404));
+    if (!nombre || !precio || !categoria_id || !artesano_id) {
+      return next(
+        crearError(
+          "Nombre, precio, categoria_id y artesano_id son obligatorios",
+          400
+        )
+      );
+    }
+
+    const producto = await prisma.producto.create({
+      data: {
+        nombre,
+        descripcion,
+        precio,
+        categoria_id,
+        artesano_id
+      }
+    });
+
+    res.status(201).json(producto);
+  } catch (error) {
+    if (error.code === "P2003") {
+      return next(crearError("La categoría o el artesano indicado no existe", 400));
+    }
+    next(error);
   }
+};
 
-  productos.splice(index, 1);
-  res.status(204).send();
+// PUT /productos/:id
+export const actualizarProducto = async (req, res, next) => {
+  try {
+    const id = req.id;
+    const { nombre, descripcion, precio, categoria_id, artesano_id } = req.body;
+
+    if (!nombre || !precio || !categoria_id || !artesano_id) {
+      return next(
+        crearError(
+          "Nombre, precio, categoria_id y artesano_id son obligatorios",
+          400
+        )
+      );
+    }
+
+    const producto = await prisma.producto.update({
+      where: { id },
+      data: {
+        nombre,
+        descripcion,
+        precio,
+        categoria_id,
+        artesano_id
+      }
+    });
+
+    res.json(producto);
+  } catch (error) {
+    if (error.code === "P2025") {
+      return next(crearError("Producto no encontrado", 404));
+    }
+    if (error.code === "P2003") {
+      return next(crearError("La categoría o el artesano indicado no existe", 400));
+    }
+    next(error);
+  }
+};
+
+// DELETE /productos/:id
+export const eliminarProducto = async (req, res, next) => {
+  try {
+    const id = req.id;
+
+    await prisma.producto.delete({ where: { id } });
+
+    res.status(200).json({ mensaje: "Producto eliminado correctamente" });
+  } catch (error) {
+    if (error.code === "P2025") {
+      return next(crearError("Producto no encontrado", 404));
+    }
+    next(error);
+  }
 };
