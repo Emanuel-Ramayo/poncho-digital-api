@@ -1,64 +1,120 @@
-import stands from "../data/stands.js";
+import prisma from "../config/prisma.js";
 import { crearError } from "../utils/errores.js";
-import { nextId } from "../utils/generadorId.js";
 
+// GET /stands
+export const listarStands = async (req, res, next) => {
+  try {
+    const stands = await prisma.stand.findMany({
+      orderBy: { id: "asc" },
+      include: {
+        sector: true
+      }
+    });
 
-//GET - /api/stands
-export const listarStands = (req, res) => {
-  res.json(stands);
+    res.json(stands);
+  } catch (error) {
+    next(error);
+  }
 };
 
-//GET - /api/stands/:id
-export const obtenerStand = (req, res) => {
-  const id = req.id;
+// GET /stands/:id
+export const obtenerStand = async (req, res, next) => {
+  try {
+    const id = req.id;
 
-  const stand = stands.find((stand) => stand.id === id);
+    const stand = await prisma.stand.findUnique({
+      where: { id },
+      include: {
+        sector: true
+      }
+    });
 
-  if (!stand) {
-    return next(crearError("Stand no encontrado", 404));
+    if (!stand) {
+      return next(crearError("Stand no encontrado", 404));
+    }
+
+    res.json(stand);
+  } catch (error) {
+    next(error);
   }
-
-  res.json(stand);
 };
 
-//POST - /api/stands
-export const crearStand = (req, res) => {
-  const { numero,ubicacion,disponible } = req.body;
-if (!numero || !ubicacion || !disponible ) {
-    return next(crearError("Todos los campos son obligatorios", 400));
+// POST /stands
+export const crearStand = async (req, res, next) => {
+  try {
+    const { numero, sector_id, disponible } = req.body;
+
+    if (!numero || !sector_id) {
+      return next(crearError("numero y sector_id son obligatorios", 400));
+    }
+
+    const stand = await prisma.stand.create({
+      data: {
+        numero,
+        sector_id,
+        // disponible es opcional: si no viene, Prisma usa el @default(true) del schema
+        ...(disponible !== undefined && { disponible })
+      }
+    });
+
+    res.status(201).json(stand);
+  } catch (error) {
+    if (error.code === "P2003") {
+      return next(crearError("El sector indicado no existe", 400));
+    }
+    next(error);
   }
-  const nuevoStand = { id: nextId(stands), numero, ubicacion, disponible };
-  stands.push(nuevoStand);
-  res.status(201).json(nuevoStand);
 };
 
- 
-//PUT - /api/stands/:id
-export const actualizarStand = (req, res) => {
-  const stand = stands.find((stand) => stand.id === req.id);
-  if (!stand) {
-    return next(crearError("Stand no encontrado", 404));
+// PUT /stands/:id
+export const actualizarStand = async (req, res, next) => {
+  try {
+    const id = req.id;
+    const { numero, sector_id, disponible } = req.body;
+
+    // Fix bug original: `!disponible` rechazaba `disponible: false` (un stand ocupado
+    // es un valor válido). Ahora se valida solo si el campo vino undefined.
+    if (!numero || !sector_id || disponible === undefined) {
+      return next(
+        crearError("numero, sector_id y disponible son obligatorios", 400)
+      );
+    }
+
+    const stand = await prisma.stand.update({
+      where: { id },
+      data: {
+        numero,
+        sector_id,
+        disponible
+      }
+    });
+
+    // Fix bug original: se mandaban dos respuestas (res.json + res.status().json())
+    // lo cual tira "Cannot set headers after they are sent". Se deja una sola.
+    res.status(200).json(stand);
+  } catch (error) {
+    if (error.code === "P2025") {
+      return next(crearError("Stand no encontrado", 404));
+    }
+    if (error.code === "P2003") {
+      return next(crearError("El sector indicado no existe", 400));
+    }
+    next(error);
   }
-  const { numero, ubicacion, disponible } = req.body;
-  if (!numero || !ubicacion || !disponible) {
-    return next(crearError("Todos los campos son obligatorios", 400));
-  } 
-  stand.numero = numero;
-  stand.ubicacion = ubicacion;
-  stand.disponible = disponible;
-  res.json(stand);
-  res.status(200).json({ message: "Stand actualizado correctamente" });
-}
+};
 
+// DELETE /stands/:id
+export const eliminarStand = async (req, res, next) => {
+  try {
+    const id = req.id;
 
+    await prisma.stand.delete({ where: { id } });
 
-//DELETE - /api/stands/:id
-export const eliminarStand = (req, res) => {
-  const index = stands.findIndex((stand) => stand.id === req.id);
-
-  if (index === -1) {
-    return next(crearError("Stand no encontrado", 404));
+    res.status(200).json({ mensaje: "Stand eliminado correctamente" });
+  } catch (error) {
+    if (error.code === "P2025") {
+      return next(crearError("Stand no encontrado", 404));
+    }
+    next(error);
   }
-  stands.splice(index, 1);
-  res.status(200).json({ message: "Stand eliminado correctamente" }); 
 };
