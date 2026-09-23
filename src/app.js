@@ -18,8 +18,8 @@ app.use("/api/postulaciones", postulacionesRoutes);
 app.use("/api/stands", standsRoutes);
 app.use("/api/productos", productosRoutes);
 app.use("/api/artesanos", artesanosRoutes);
-app.use(manejadorErrores);  //Middleware para manejar errores
 app.use(noEncontrado); //Middleware para manejar rutas no encontradas
+app.use(manejadorErrores);  //Middleware para manejar errores
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
 });
