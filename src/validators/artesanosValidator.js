@@ -1,19 +1,27 @@
 import { z } from "zod";
 
 export const artesanoSchema = z.object({
-    nombre: z.string().trim().min(1, {
+    nombre: z.string({
+        error: "El nombre es obligatorio"
+    }).trim().min(1, {
         message: "El nombre es obligatorio"
     }),
 
-    especialidad: z.string().trim().min(1, {
+    especialidad: z.string({
+        error: "La especialidad es obligatoria"
+    }).trim().min(1, {
         message: "La especialidad es obligatoria"
     }),
 
-    provincia: z.string().trim().min(1, {
+    provincia: z.string({
+        error: "La provincia es obligatoria"
+    }).trim().min(1, {
         message: "La provincia es obligatoria"
     }),
 
-    localidad: z.string().trim().min(1, {
+    localidad: z.string({
+        error: "La localidad es obligatoria"
+    }).trim().min(1, {
         message: "La localidad es obligatoria"
     })
 });
