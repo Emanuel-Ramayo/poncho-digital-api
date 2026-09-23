@@ -3,3 +3,9 @@ export const crearError = (mensaje, status) => {
     error.status = status;
     return error;
 }
+
+export const detallarErroresZod = (errorZod) =>
+    errorZod.issues.map((issue) => ({
+        campo: issue.path.join('.') || null,
+        mensaje: issue.message
+    }));
