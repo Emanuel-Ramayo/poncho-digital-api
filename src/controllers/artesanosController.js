@@ -1,177 +1,96 @@
-import prisma from "../config/prisma.js";
+import {
+    listarArtesanos as listarArtesanosService,
+    obtenerArtesano as obtenerArtesanoService,
+    crearArtesano as crearArtesanoService,
+    actualizarArtesano as actualizarArtesanoService,
+    eliminarArtesano as eliminarArtesanoService
+} from "../services/artesanosService.js";
+
 import { crearError } from "../utils/errores.js";
 
 // GET /artesanos
 export const listarArtesanos = async (req, res, next) => {
-try {
-const artesanos = await prisma.artesano.findMany({
-orderBy: {
-id: "asc"
-},
-include: {
-productos: true,
-postulaciones: true
-}
-});
+    try {
+        const resultado = await listarArtesanosService(
+            req.queryValidada
+        );
 
-
-res.json(artesanos);
-
-
-} catch (error) {
-next(error);
-}
+        res.json(resultado);
+    } catch (error) {
+        next(error);
+    }
 };
 
 // POST /artesanos
 export const crearArtesano = async (req, res, next) => {
-try {
-const {
-nombre,
-especialidad,
-provincia,
-localidad
-} = req.body;
+    try {
+        const artesano = await crearArtesanoService(req.body);
 
-if (!nombre || !especialidad || !provincia || !localidad) {
-  return next(
-    crearError(
-      "Nombre, especialidad, provincia y localidad son obligatorios",
-      400
-    )
-  );
-}
-
-const artesano = await prisma.artesano.create({
-  data: {
-    nombre,
-    especialidad,
-    provincia,
-    localidad
-  }
-});
-
-res.status(201).json(artesano);
-
-} catch (error) {
-next(error);
-}
+        res.status(201).json(artesano);
+    } catch (error) {
+        next(error);
+    }
 };
 
 // GET /artesanos/:id
 export const obtenerArtesano = async (req, res, next) => {
-try {
-const id = req.id;
+    try {
+        const id = req.id;
 
+        const artesano = await obtenerArtesanoService(id);
 
-const artesano = await prisma.artesano.findUnique({
-  where: {
-    id
-  },
-  include: {
-    productos: true,
-    postulaciones: {
-      include: {
-        stand: {
-          include: {
-            sector: {
-              include: {
-                pabellon: true
-              }
-            }
-          }
+        if (!artesano) {
+            return next(
+                crearError("Artesano no encontrado", 404)
+            );
         }
-      }
+
+        res.json(artesano);
+    } catch (error) {
+        next(error);
     }
-  }
-});
-
-if (!artesano) {
-  return next(crearError("Artesano no encontrado", 404));
-}
-
-res.json(artesano);
-
-
-} catch (error) {
-next(error);
-}
 };
 
 // PUT /artesanos/:id
 export const actualizarArtesano = async (req, res, next) => {
-try {
-const id = req.id;
+    try {
+        const id = req.id;
 
+        const artesano = await actualizarArtesanoService(
+            id,
+            req.body
+        );
 
-const {
-  nombre,
-  especialidad,
-  provincia,
-  localidad
-} = req.body;
+        res.json(artesano);
+    } catch (error) {
+        if (error.code === "P2025") {
+            return next(
+                crearError("Artesano no encontrado", 404)
+            );
+        }
 
-if (!nombre || !especialidad || !provincia || !localidad) {
-  return next(
-    crearError(
-      "Nombre, especialidad, provincia y localidad son obligatorios",
-      400
-    )
-  );
-}
-
-const artesano = await prisma.artesano.update({
-  where: {
-    id
-  },
-  data: {
-    nombre,
-    especialidad,
-    provincia,
-    localidad
-  }
-});
-
-res.json(artesano);
-
-
-} catch (error) {
-if (error.code === "P2025") {
-return next(crearError("Artesano no encontrado", 404));
-}
-
-
-next(error);
-
-
-}
+        next(error);
+    }
 };
 
 // DELETE /artesanos/:id
 export const eliminarArtesano = async (req, res, next) => {
-try {
-const id = req.id;
+    try {
+        const id = req.id;
 
+        await eliminarArtesanoService(id);
 
-await prisma.artesano.delete({
-  where: {
-    id
-  }
-});
+        res.json({
+            mensaje: "Artesano eliminado correctamente"
+        });
+    } catch (error) {
+        if (error.code === "P2025") {
+            return next(
+                crearError("Artesano no encontrado", 404)
+            );
+        }
 
-res.json({
-  mensaje: "Artesano eliminado correctamente"
-});
-
-
-} catch (error) {
-if (error.code === "P2025") {
-return next(crearError("Artesano no encontrado", 404));
-}
-
-
-next(error);
-
-
-}
+        next(error);
+    }
 };
+
