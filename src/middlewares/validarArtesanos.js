@@ -1,54 +1,53 @@
 import {
-    artesanoSchema,
-    consultarArtesanosSchema
+  artesanoSchema,
+  actualizarArtesanoSchema,
+  consultarArtesanosSchema
 } from "../validators/artesanosValidator.js";
 
 import {
-    crearError,
-    detallarErroresZod
+  crearError,
+  detallarErroresZod
 } from "../utils/errores.js";
 
-// Valida los datos enviados en POST y PUT
+// Valida datos para creación (POST)
 export const validarArtesano = (req, res, next) => {
-    const resultado = artesanoSchema.safeParse(req.body);
+  const resultado = artesanoSchema.safeParse(req.body);
 
-    console.log("Resultado de la validación:", resultado);
+  if (!resultado.success) {
+    const detalles = detallarErroresZod(resultado.error);
+    return next(crearError("Datos de artesano inválidos", 400, detalles));
+  }
 
-    if (!resultado.success) {
-        const detalles = detallarErroresZod(resultado.error);
-
-        return next(
-            crearError(
-                "Datos de artesano inválidos",
-                400,
-                detalles
-            )
-        );
-    }
-
-    req.body = resultado.data;
-    next();
+  req.body = resultado.data; // DTO limpio
+  next();
 };
 
-// Valida los parámetros de consulta de GET /artesanos
+// Valida datos para actualización (PUT)
+export const validarActualizarArtesano = (req, res, next) => {
+  const resultado = actualizarArtesanoSchema.safeParse(req.body);
+
+  if (!resultado.success) {
+    const detalles = detallarErroresZod(resultado.error);
+    return next(crearError("Datos de artesano inválidos", 400, detalles));
+  }
+
+  if (Object.keys(resultado.data).length === 0) {
+    return next(crearError("Debe enviar al menos un campo para actualizar", 400));
+  }
+
+  req.body = resultado.data;
+  next();
+};
+
+// Valida parámetros de consulta (GET /artesanos)
 export const validarConsultaArtesanos = (req, res, next) => {
-    const resultado = consultarArtesanosSchema.safeParse(req.query);
+  const resultado = consultarArtesanosSchema.safeParse(req.query);
 
-    console.log("Resultado de la validación:", resultado);
+  if (!resultado.success) {
+    const detalles = detallarErroresZod(resultado.error);
+    return next(crearError("Parámetros de consulta inválidos", 400, detalles));
+  }
 
-    if (!resultado.success) {
-        const detalles = detallarErroresZod(resultado.error);
-
-        return next(
-            crearError(
-                "Parámetros de consulta inválidos",
-                400,
-                detalles
-            )
-        );
-    }
-
-    req.queryValidada = resultado.data;
-    next();
+  req.queryValidada = resultado.data; // DTO de consulta validado
+  next();
 };
-
