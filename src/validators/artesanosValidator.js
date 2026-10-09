@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// DTO para Creación / Reemplazo completo 
+// DTO para Creación / Reemplazo completo (POST / PUT)
 export const artesanoSchema = z.object({
   nombre: z
     .string({
@@ -11,49 +11,45 @@ export const artesanoSchema = z.object({
     .trim()
     .min(1, "El nombre es obligatorio"),
 
-  especialidad: z
-    .string({
-      required_error: "La especialidad es obligatoria",
-      invalid_type_error: "La especialidad debe ser un texto",
-      message: "La especialidad es obligatoria"
-    })
-    .trim()
-    .min(1, "La especialidad es obligatoria"),
+  rubro_id: z.preprocess(
+    (val) => (val !== undefined && val !== null && val !== "" ? Number(val) : val),
+    z
+      .number({
+        required_error: "El rubro es obligatorio",
+        invalid_type_error: "El rubro debe ser un número entero",
+        message: "El rubro es obligatorio"
+      })
+      .int("El rubro debe ser un número entero")
+      .positive("El rubro debe ser un identificador válido")
+  ),
 
-  provincia: z
-    .string({
-      required_error: "La provincia es obligatoria",
-      invalid_type_error: "La provincia debe ser un texto",
-      message: "La provincia es obligatoria"
-    })
-    .trim()
-    .min(1, "La provincia es obligatoria"),
-
-  localidad: z
-    .string({
-      required_error: "La localidad es obligatoria",
-      invalid_type_error: "La localidad debe ser un texto",
-      message: "La localidad es obligatoria"
-    })
-    .trim()
-    .min(1, "La localidad es obligatoria")
+  localidad_id: z.preprocess(
+    (val) => (val !== undefined && val !== null && val !== "" ? Number(val) : val),
+    z
+      .number({
+        required_error: "La localidad es obligatoria",
+        invalid_type_error: "La localidad debe ser un número entero",
+        message: "La localidad es obligatoria"
+      })
+      .int("La localidad debe ser un número entero")
+      .positive("La localidad debe ser un identificador válido")
+  )
 });
 
-// DTO para Actualización Parcial (PUT)
+// DTO para Actualización Parcial (PATCH / PUT)
 export const actualizarArtesanoSchema = artesanoSchema.partial();
 
 const CAMPOS_ORDEN = [
   "id",
   "nombre",
-  "especialidad",
-  "provincia",
-  "localidad",
+  "rubro_id",
+  "localidad_id",
   "createdAt"
 ];
 
 const DIRECCIONES = ["asc", "desc"];
 
-// DTO para Consulta y Paginación (GET /artesanos)
+// DTO para Consulta, Filtros y Paginación (GET /artesanos)
 export const consultarArtesanosSchema = z.object({
   nombre: z
     .string({
@@ -64,32 +60,53 @@ export const consultarArtesanosSchema = z.object({
     .min(1, "El nombre no puede estar vacío")
     .optional(),
 
-  especialidad: z
-    .string({
-      invalid_type_error: "La especialidad debe ser un texto",
-      message: "La especialidad debe ser un texto"
-    })
-    .trim()
-    .min(1, "La especialidad no puede estar vacía")
-    .optional(),
+  rubro_id: z.preprocess(
+    (val) => {
+      if (val === undefined || val === null || val === "") return undefined;
+      const num = Number(val);
+      return Number.isNaN(num) ? val : num;
+    },
+    z
+      .number({
+        invalid_type_error: "El rubro debe ser un número",
+        message: "El rubro debe ser un número"
+      })
+      .int("El rubro debe ser un número entero")
+      .positive("El rubro debe ser un identificador válido")
+      .optional()
+  ),
 
-  provincia: z
-    .string({
-      invalid_type_error: "La provincia debe ser un texto",
-      message: "La provincia debe ser un texto"
-    })
-    .trim()
-    .min(1, "La provincia no puede estar vacía")
-    .optional(),
+  localidad_id: z.preprocess(
+    (val) => {
+      if (val === undefined || val === null || val === "") return undefined;
+      const num = Number(val);
+      return Number.isNaN(num) ? val : num;
+    },
+    z
+      .number({
+        invalid_type_error: "La localidad debe ser un número",
+        message: "La localidad debe ser un número"
+      })
+      .int("La localidad debe ser un número entero")
+      .positive("La localidad debe ser un identificador válido")
+      .optional()
+  ),
 
-  localidad: z
-    .string({
-      invalid_type_error: "La localidad debe ser un texto",
-      message: "La localidad debe ser un texto"
-    })
-    .trim()
-    .min(1, "La localidad no puede estar vacía")
-    .optional(),
+  provincia_id: z.preprocess(
+    (val) => {
+      if (val === undefined || val === null || val === "") return undefined;
+      const num = Number(val);
+      return Number.isNaN(num) ? val : num;
+    },
+    z
+      .number({
+        invalid_type_error: "La provincia debe ser un número",
+        message: "La provincia debe ser un número"
+      })
+      .int("La provincia debe ser un número entero")
+      .positive("La provincia debe ser un identificador válido")
+      .optional()
+  ),
 
   pagina: z.preprocess(
     (val) => {

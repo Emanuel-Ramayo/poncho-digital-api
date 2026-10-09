@@ -1,10 +1,43 @@
 import prisma from "../config/prisma.js";
 
+const includeCompletoArtesano = {
+  rubro: {
+    select: {
+      id: true,
+      nombre: true
+    }
+  },
+  localidad: {
+    include: {
+      provincia: true
+    }
+  },
+  productos: {
+    include: {
+      categoria: true
+    }
+  },
+  postulaciones: {
+    include: {
+      anio: true,
+      stand: {
+        include: {
+          sector: {
+            include: {
+              pabellon: true
+            }
+          }
+        }
+      }
+    }
+  }
+};
+
 export const listarArtesanos = async ({
   nombre,
-  especialidad,
-  provincia,
-  localidad,
+  rubro_id,
+  localidad_id,
+  provincia_id,
   pagina = 1,
   limite = 10,
   ordenPor = "id",
@@ -16,16 +49,18 @@ export const listarArtesanos = async ({
     where.nombre = { contains: nombre, mode: "insensitive" };
   }
 
-  if (especialidad) {
-    where.especialidad = { contains: especialidad, mode: "insensitive" };
+  if (rubro_id) {
+    where.rubro_id = Number(rubro_id);
   }
 
-  if (provincia) {
-    where.provincia = { contains: provincia, mode: "insensitive" };
+  if (localidad_id) {
+    where.localidad_id = Number(localidad_id);
   }
 
-  if (localidad) {
-    where.localidad = { contains: localidad, mode: "insensitive" };
+  if (provincia_id) {
+    where.localidad = {
+      provincia_id: Number(provincia_id)
+    };
   }
 
   const skip = (Number(pagina) - 1) * Number(limite);
@@ -38,10 +73,7 @@ export const listarArtesanos = async ({
       },
       skip,
       take: Number(limite),
-      include: {
-        productos: true,
-        postulaciones: true
-      }
+      include: includeCompletoArtesano
     }),
     prisma.artesano.count({ where })
   ]);
@@ -62,28 +94,14 @@ export const obtenerArtesano = async (id) => {
     where: {
       id: Number(id)
     },
-    include: {
-      productos: true,
-      postulaciones: {
-        include: {
-          stand: {
-            include: {
-              sector: {
-                include: {
-                  pabellon: true
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+    include: includeCompletoArtesano
   });
 };
 
 export const crearArtesano = async (datos) => {
   return await prisma.artesano.create({
-    data: datos
+    data: datos,
+    include: includeCompletoArtesano
   });
 };
 
@@ -92,7 +110,8 @@ export const actualizarArtesano = async (id, datos) => {
     where: {
       id: Number(id)
     },
-    data: datos
+    data: datos,
+    include: includeCompletoArtesano
   });
 };
 
