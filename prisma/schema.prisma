@@ -13,92 +13,150 @@ enum EstadoPostulacion {
 }
 
 model Artesano {
-  id           Int    @id @default(autoincrement())
-  nombre       String
-  especialidad String
-  provincia    String
-  localidad    String
+  id            Int           @id @default(autoincrement())
+  nombre        String
+
+  rubro_id      Int
+  rubro         Rubro         @relation(fields: [rubro_id], references: [id], onDelete: Restrict)
+
+  localidad_id  Int
+  localidad     Localidad     @relation(fields: [localidad_id], references: [id], onDelete: Restrict)
 
   productos     Producto[]
   postulaciones Postulacion[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+}
+
+model Rubro {
+  id        Int        @id @default(autoincrement())
+  nombre    String     @unique
+
+  artesanos Artesano[]
+
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model Provincia {
+  id          Int         @id @default(autoincrement())
+  nombre      String      @unique
+
+  localidades Localidad[]
+
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Localidad {
+  id           Int        @id @default(autoincrement())
+  nombre       String
+
+  provincia_id Int
+  provincia    Provincia  @relation(fields: [provincia_id], references: [id], onDelete: Restrict)
+
+  artesanos    Artesano[]
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([nombre, provincia_id])
 }
 
 model Producto {
-  id          Int     @id @default(autoincrement())
-  nombre      String
-  descripcion String?
-  precio      Decimal
+  id           Int        @id @default(autoincrement())
+  nombre       String
+  descripcion  String?
+  precio       Decimal    @db.Decimal(10, 2)
 
   categoria_id Int
   artesano_id  Int
 
-  categoria Categoria @relation(fields: [categoria_id], references: [id])
-  artesano  Artesano  @relation(fields: [artesano_id], references: [id])
+  categoria    Categoria  @relation(fields: [categoria_id], references: [id], onDelete: Restrict)
+  artesano     Artesano   @relation(fields: [artesano_id], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
 }
 
 model Categoria {
-  id     Int    @id @default(autoincrement())
-  nombre String
+  id        Int        @id @default(autoincrement())
+  nombre    String     @unique
 
   productos Producto[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
 
 model Pabellon {
-  id     Int    @id @default(autoincrement())
-  nombre String
+  id        Int        @id @default(autoincrement())
+  nombre    String     @unique
 
-  sectores Sector[]
+  sectores  Sector[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
 }
 
 model Sector {
-  id     Int    @id @default(autoincrement())
-  nombre String
+  id          Int        @id @default(autoincrement())
+  nombre      String
 
   pabellon_id Int
-  pabellon    Pabellon @relation(fields: [pabellon_id], references: [id])
+  pabellon    Pabellon   @relation(fields: [pabellon_id], references: [id], onDelete: Cascade)
 
-  stands Stand[]
+  stands      Stand[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([nombre, pabellon_id])
 }
 
 model Stand {
-  id         Int     @id @default(autoincrement())
-  numero     Int
-  disponible Boolean @default(true)
+  id            Int           @id @default(autoincrement())
+  numero        Int
+  disponible    Boolean       @default(true)
 
-  sector_id Int
-  sector    Sector @relation(fields: [sector_id], references: [id])
+  sector_id     Int
+  sector        Sector        @relation(fields: [sector_id], references: [id], onDelete: Cascade)
 
   postulaciones Postulacion[]
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@unique([numero, sector_id])
+}
+
+model AnioPostulacion {
+  id            Int           @id @default(autoincrement())
+  anio          Int           @unique
+
+  postulaciones Postulacion[]
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
 }
 
 model Postulacion {
-  id     Int               @id @default(autoincrement())
-  estado EstadoPostulacion @default(PENDIENTE)
+  id           Int               @id @default(autoincrement())
+  estado       EstadoPostulacion @default(PENDIENTE)
 
-  artesano_id Int
-  artesano    Artesano @relation(fields: [artesano_id], references: [id])
+  artesano_id  Int
+  artesano     Artesano          @relation(fields: [artesano_id], references: [id], onDelete: Cascade)
 
-  stand_id Int?
-  stand    Stand? @relation(fields: [stand_id], references: [id])
+  anio_id      Int
+  anio         AnioPostulacion   @relation(fields: [anio_id], references: [id], onDelete: Restrict)
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  stand_id     Int?
+  stand        Stand?            @relation(fields: [stand_id], references: [id], onDelete: SetNull)
+
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+
+  // Restricción: un artesano solo puede tener una postulación por año
+  @@unique([artesano_id, anio_id])
 }
