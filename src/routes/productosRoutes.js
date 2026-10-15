@@ -7,13 +7,27 @@ import {
   eliminarProducto
 } from "../controllers/productosController.js";
 import { validarId } from "../middlewares/validarId.js";
+import {
+  validarProducto,
+  validarActualizarProducto,
+  validarConsultaProductos
+} from "../middlewares/validarProductos.js";
 
 const router = express.Router();
 
-router.get("/", listarProductos);
-router.post("/", crearProducto);
+// Listado paginado y con filtros (?nombre=&categoria_id=&artesano_id=&precioMin=&precioMax=&pagina=&limite=)
+router.get("/", validarConsultaProductos, listarProductos);
+
+// Alta de producto
+router.post("/", validarProducto, crearProducto);
+
+// Detalle por ID
 router.get("/:id", validarId, obtenerProducto);
-router.put("/:id", validarId, actualizarProducto);
-router.delete("/:id", validarId,  eliminarProducto);
+
+// Modificación de producto
+router.put("/:id", validarId, validarActualizarProducto, actualizarProducto);
+
+// Baja de producto
+router.delete("/:id", validarId, eliminarProducto);
 
 export default router;
