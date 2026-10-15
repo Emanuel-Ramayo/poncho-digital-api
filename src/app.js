@@ -3,6 +3,7 @@ import postulacionesRoutes from './routes/postulacionesRoutes.js';
 import standsRoutes from './routes/standsRoutes.js';
 import productosRoutes from './routes/productosRoutes.js';
 import artesanosRoutes from './routes/artesanosRoutes.js';
+import usuariosRoutes from './routes/usuariosRoutes.js';
 import { logger } from './middlewares/logger.js';
 import { manejadorErrores } from './middlewares/manejadorErrores.js';
 import { noEncontrado } from './middlewares/noEncontrado.js';
@@ -18,6 +19,7 @@ app.use("/api/postulaciones", postulacionesRoutes);
 app.use("/api/stands", standsRoutes);
 app.use("/api/productos", productosRoutes);
 app.use("/api/artesanos", artesanosRoutes);
+app.use("/api/usuarios", usuariosRoutes);
 app.use(noEncontrado); //Middleware para manejar rutas no encontradas
 app.use(manejadorErrores);  //Middleware para manejar errores
 app.listen(PORT, () => {

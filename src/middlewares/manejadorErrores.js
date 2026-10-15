@@ -1,16 +1,16 @@
 export const manejadorErrores = (err, req, res, next) => {
-    const status = err.status || 500;
+  const status = err.status || 500;
+  const mensaje = err.message || "Error interno del servidor";
 
-    if (status >= 500) {
-        console.error(err);
+  // Objeto base de respuesta
+  const respuesta = {
+    error: mensaje
+  };
 
-        return res.status(status).json({
-            error: "Error interno del servidor"
-        });
-    }
+  // Solo agrega la propiedad 'detalles' si contiene un array o valor con contenido
+  if (err.detalles && (!Array.isArray(err.detalles) || err.detalles.length > 0)) {
+    respuesta.detalles = err.detalles;
+  }
 
-    res.status(status).json({
-        error: err.message,
-        detalles: err.detalles
-    });
+  return res.status(status).json(respuesta);
 };
