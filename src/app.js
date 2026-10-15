@@ -7,6 +7,8 @@ import usuariosRoutes from './routes/usuariosRoutes.js';
 import { logger } from './middlewares/logger.js';
 import { manejadorErrores } from './middlewares/manejadorErrores.js';
 import { noEncontrado } from './middlewares/noEncontrado.js';
+import './config/jwt.js';
+import { iniciarLimpiezaRevocaciones } from './tareas/limpiezaRevocaciones.js';
 
 const app = express();
 app.use(logger); //Middleware para registrar las solicitudes entrantes
@@ -24,4 +26,5 @@ app.use(noEncontrado); //Middleware para manejar rutas no encontradas
 app.use(manejadorErrores);  //Middleware para manejar errores
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
+    iniciarLimpiezaRevocaciones();
 });
