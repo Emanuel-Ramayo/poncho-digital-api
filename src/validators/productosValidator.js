@@ -12,6 +12,7 @@ import {
 const PRECIO_MAXIMO = 99999999.99; // Decimal(10, 2)
 
 // DTO para Creación / Reemplazo (POST / PUT)
+// El artesano_id NO va en el body; se obtiene de la sesión autenticada
 export const productoSchema = z.object({
   nombre: z
     .string({
@@ -47,8 +48,7 @@ export const productoSchema = z.object({
       })
   ),
 
-  categoria_id: idRequerido("La categoría"),
-  artesano_id: idRequerido("El artesano")
+  categoria_id: idRequerido("La categoría")
 });
 
 // DTO para Actualización parcial (PUT)
@@ -72,7 +72,7 @@ const precioFiltro = (etiqueta) =>
       .optional()
   );
 
-// DTO para Consulta, Filtros y Paginación (GET /productos)
+// DTO para Consulta pública, Filtros y Paginación (GET /productos)
 export const consultarProductosSchema = z
   .object({
     nombre: z
