@@ -1,33 +1,31 @@
 import express from "express";
-import {
-  listarArtesanos,
-  obtenerArtesano,
-  crearArtesano,
-  actualizarArtesano,
-  eliminarArtesano
-} from "../controllers/artesanosController.js";
+import {listarArtesanos,obtenerArtesano,crearArtesano,actualizarArtesano,eliminarArtesano,obtenerMiPerfilArtesano} from "../controllers/artesanosController.js";
 import { validarId } from "../middlewares/validarId.js";
-import {
-  validarArtesano,
-  validarActualizarArtesano,
-  validarConsultaArtesanos
-} from "../middlewares/validarArtesanos.js";
+import {validarArtesano,validarActualizarArtesano,validarConsultaArtesanos} from "../middlewares/validarArtesanos.js";
+import { autenticarUsuario } from "../middlewares/autenticacionMiddleware.js";
+import {cargarContextoUsuario,autorizarRoles} from "../middlewares/autorizacionMiddleware.js";
 
 const router = express.Router();
 
-// Listado paginado y con filtros (?pagina=1&limite=10&rubro_id=1...)
+// Consultas públicas (GET)
 router.get("/", validarConsultaArtesanos, listarArtesanos);
 
-// Alta de artesano
-router.post("/", validarArtesano, crearArtesano);
+// Perfil propio del artesano autenticado (antes de /:id para evitar colisiones)
+router.get(
+  "/me",autenticarUsuario,cargarContextoUsuario,autorizarRoles("ARTESANO"),obtenerMiPerfilArtesano);
 
-// Detalle por ID
+// Detalle público por ID
 router.get("/:id", validarId, obtenerArtesano);
 
-// Modificación de artesano
-router.put("/:id", validarId, validarActualizarArtesano, actualizarArtesano);
+// Alta de artesano (Solo ADMINISTRADOR)
+router.post("/",autenticarUsuario,cargarContextoUsuario,autorizarRoles("ADMINISTRADOR"),validarArtesano,crearArtesano);
 
-// Baja de artesano
-router.delete("/:id", validarId, eliminarArtesano);
+// Modificación de artesano (Solo ADMINISTRADOR)
+// Orden: autenticación -> contexto -> rol -> validación -> controlador
+router.put("/:id",autenticarUsuario,cargarContextoUsuario,autorizarRoles("ADMINISTRADOR"),validarId,validarActualizarArtesano,actualizarArtesano);
+
+// Baja de artesano (Solo ADMINISTRADOR)
+// Orden: autenticación -> contexto -> rol -> validación -> controlador
+router.delete("/:id",autenticarUsuario,cargarContextoUsuario,autorizarRoles("ADMINISTRADOR"),validarId,eliminarArtesano);
 
 export default router;

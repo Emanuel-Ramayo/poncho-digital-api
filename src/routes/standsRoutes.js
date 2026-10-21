@@ -1,33 +1,25 @@
 import express from "express";
-import {
-  listarStands,
-  obtenerStand,
-  crearStand,
-  actualizarStand,
-  eliminarStand
-} from "../controllers/standsController.js";
+import {listarStands,obtenerStand,crearStand,actualizarStand,eliminarStand} from "../controllers/standsController.js";
 import { validarId } from "../middlewares/validarId.js";
-import {
-  validarStand,
-  validarActualizarStand,
-  validarConsultaStands
-} from "../middlewares/validarStands.js";
+import {validarStand,validarActualizarStand,validarConsultaStands} from "../middlewares/validarStands.js";
+import { autenticarUsuario } from "../middlewares/autenticacionMiddleware.js";
+import {cargarContextoUsuario,autorizarRoles} from "../middlewares/autorizacionMiddleware.js";
 
 const router = express.Router();
 
-// Listado paginado y con filtros (?disponible=true&sector_id=&pabellon_id=&numero=&pagina=&limite=)
+// Consultas públicas (GET)
 router.get("/", validarConsultaStands, listarStands);
-
-// Alta de stand
-router.post("/", validarStand, crearStand);
-
-// Detalle por ID
 router.get("/:id", validarId, obtenerStand);
 
-// Modificación de stand
-router.put("/:id", validarId, validarActualizarStand, actualizarStand);
+// Alta de stand (Solo ADMINISTRADOR)
+router.post("/",autenticarUsuario,cargarContextoUsuario,autorizarRoles("ADMINISTRADOR"),validarStand,crearStand);
 
-// Baja de stand
-router.delete("/:id", validarId, eliminarStand);
+// Modificación de stand (Solo ADMINISTRADOR)
+// Orden: autenticación -> contexto -> rol -> validación -> controlador
+router.put("/:id",autenticarUsuario,cargarContextoUsuario,autorizarRoles("ADMINISTRADOR"),validarId,validarActualizarStand,actualizarStand);
+
+// Baja de stand (Solo ADMINISTRADOR)
+// Orden: autenticación -> contexto -> rol -> validación -> controlador
+router.delete("/:id",autenticarUsuario,cargarContextoUsuario,autorizarRoles("ADMINISTRADOR"),validarId,eliminarStand);
 
 export default router;

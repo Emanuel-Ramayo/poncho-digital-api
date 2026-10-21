@@ -1,6 +1,8 @@
+// src/routes/productosRoutes.js
 import express from "express";
 import {
   listarProductos,
+  listarMisProductos,
   obtenerProducto,
   crearProducto,
   actualizarProducto,
@@ -12,22 +14,33 @@ import {
   validarActualizarProducto,
   validarConsultaProductos
 } from "../middlewares/validarProductos.js";
+import { autenticarUsuario } from "../middlewares/autenticacionMiddleware.js";
+import {
+  cargarContextoUsuario,
+  autorizarRoles
+} from "../middlewares/autorizacionMiddleware.js";
 
 const router = express.Router();
 
-// Listado paginado y con filtros (?nombre=&categoria_id=&artesano_id=&precioMin=&precioMax=&pagina=&limite=)
+// Listado publico paginado y con filtros (?nombre=&categoria_id=&artesano_id=&precioMin=&precioMax=&pagina=&limite=)
 router.get("/", validarConsultaProductos, listarProductos);
 
-// Alta de producto
-router.post("/", validarProducto, crearProducto);
+// Listado propio del artesano autenticado (sin parametros del cliente)
+// Ubicado antes de /:id para evitar colisiones de rutas
+router.get("/mis-productos",autenticarUsuario,cargarContextoUsuario,autorizarRoles("ARTESANO"),listarMisProductos);
 
-// Detalle por ID
+// Detalle publico por ID
 router.get("/:id", validarId, obtenerProducto);
 
-// Modificación de producto
-router.put("/:id", validarId, validarActualizarProducto, actualizarProducto);
+// Alta de producto (Solo ARTESANO)
+router.post("/",autenticarUsuario,cargarContextoUsuario,autorizarRoles("ARTESANO"),validarProducto,crearProducto);
 
-// Baja de producto
-router.delete("/:id", validarId, eliminarProducto);
+// Modificacion de producto (Solo ARTESANO)
+// Orden: autenticacion -> contexto -> rol -> validacion de parametros y body -> controlador
+router.put("/:id",autenticarUsuario,cargarContextoUsuario,autorizarRoles("ARTESANO"),validarId,validarActualizarProducto,actualizarProducto);
+
+// Baja de producto (Solo ARTESANO)
+// Orden: autenticacion -> contexto -> rol -> validacion de ID -> controlador
+router.delete("/:id",autenticarUsuario,cargarContextoUsuario,autorizarRoles("ARTESANO"),validarId,eliminarProducto);
 
 export default router;
