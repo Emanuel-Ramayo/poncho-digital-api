@@ -10,6 +10,7 @@ enum EstadoPostulacion {
   PENDIENTE
   APROBADA
   RECHAZADA
+  CANCELADA
 }
 
 model Artesano {
@@ -21,6 +22,9 @@ model Artesano {
 
   localidad_id  Int
   localidad     Localidad     @relation(fields: [localidad_id], references: [id], onDelete: Restrict)
+
+  usuarioId     String        @unique @db.Uuid
+  usuario       Usuario       @relation(fields: [usuarioId], references: [id], onDelete: Restrict)
 
   productos     Producto[]
   postulaciones Postulacion[]
@@ -74,7 +78,7 @@ model Producto {
   artesano_id  Int
 
   categoria    Categoria  @relation(fields: [categoria_id], references: [id], onDelete: Restrict)
-  artesano     Artesano   @relation(fields: [artesano_id], references: [id], onDelete: Cascade)
+  artesano     Artesano   @relation(fields: [artesano_id], references: [id], onDelete: Restrict)
 
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
@@ -142,33 +146,51 @@ model AnioPostulacion {
 }
 
 model Postulacion {
-  id           Int               @id @default(autoincrement())
-  estado       EstadoPostulacion @default(PENDIENTE)
+  id          Int               @id @default(autoincrement())
+  estado      EstadoPostulacion @default(PENDIENTE)
 
-  artesano_id  Int
-  artesano     Artesano          @relation(fields: [artesano_id], references: [id], onDelete: Cascade)
+  artesano_id Int
+  artesano    Artesano          @relation(fields: [artesano_id], references: [id], onDelete: Restrict)
 
-  anio_id      Int
-  anio         AnioPostulacion   @relation(fields: [anio_id], references: [id], onDelete: Restrict)
+  anio_id     Int
+  anio        AnioPostulacion   @relation(fields: [anio_id], references: [id], onDelete: Restrict)
 
-  stand_id     Int?
-  stand        Stand?            @relation(fields: [stand_id], references: [id], onDelete: SetNull)
+  stand_id    Int?
+  stand       Stand?            @relation(fields: [stand_id], references: [id], onDelete: SetNull)
 
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
 
-  // Restricción: un artesano solo puede tener una postulación por año
   @@unique([artesano_id, anio_id])
 }
 
 model Usuario {
-  id           String      @id @default(uuid()) @db.Uuid
+  id           String       @id @default(uuid()) @db.Uuid
   nombre       String
-  email        String   @unique
+  email        String       @unique
   passwordHash String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  activo       Boolean      @default(true)
+  roles        UsuarioRol[]
+  artesano     Artesano?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
 }
+
+model Rol {
+  id       Int          @id @default(autoincrement())
+  nombre   String       @unique
+  usuarios UsuarioRol[]
+}
+
+model UsuarioRol {
+  usuarioId String  @db.Uuid
+  rolId     Int
+  usuario   Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  rol       Rol     @relation(fields: [rolId], references: [id], onDelete: Restrict)
+
+  @@id([usuarioId, rolId])
+}
+
 model TokenRevocado {
   jti     String   @id
   venceEn DateTime
