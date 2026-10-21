@@ -37,7 +37,7 @@ export const registrarUsuarioSchema = z.object({
           : "La contraseña debe ser una cadena de texto"
     })
     .min(8, "La contraseña debe tener al menos 8 caracteres.")
-});
+}).strict();
 
 // POST /api/usuarios/login 
 export const iniciarSesionSchema = z.object({

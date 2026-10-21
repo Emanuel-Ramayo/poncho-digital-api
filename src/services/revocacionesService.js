@@ -18,10 +18,10 @@ export const tokenEstaRevocado = async (jti) => {
   return registro !== null;
 };
 
-// Borra solo las revocaciones de tokens que ya vencieron
+// Borra solo las revocaciones de tokens que ya vencieron (venceEn <= ahora)
 export const eliminarRevocacionesVencidas = async () => {
   const resultado = await prisma.tokenRevocado.deleteMany({
-    where: { venceEn: { lt: new Date() } }
+    where: { venceEn: { lte: new Date() } }
   });
   return resultado.count;
 };

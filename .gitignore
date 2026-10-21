@@ -1,12 +1,9 @@
-
 # Dependencias de Node
->>>>>>> Ezequiel/datos-endpoints
 node_modules/
 
 # Variables de entorno
 .env
 !.env.example
-=======
 .env.local
 .env.*.local
 
@@ -33,7 +30,6 @@ Thumbs.db
 dist/
 build/
 coverage/
->>>>>>> Ezequiel/datos-endpoints
 
 /generated/prisma
 .agents
