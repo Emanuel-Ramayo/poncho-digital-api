@@ -4,9 +4,7 @@ import { z } from "zod";
 export const artesanoSchema = z.object({
   nombre: z
     .string({
-      required_error: "El nombre es obligatorio",
-      invalid_type_error: "El nombre debe ser un texto",
-      message: "El nombre es obligatorio"
+      error: "El nombre es obligatorio"
     })
     .trim()
     .min(1, "El nombre es obligatorio"),
@@ -15,9 +13,7 @@ export const artesanoSchema = z.object({
     (val) => (val !== undefined && val !== null && val !== "" ? Number(val) : val),
     z
       .number({
-        required_error: "El rubro es obligatorio",
-        invalid_type_error: "El rubro debe ser un número entero",
-        message: "El rubro es obligatorio"
+        error: "El rubro es obligatorio"
       })
       .int("El rubro debe ser un número entero")
       .positive("El rubro debe ser un identificador válido")
@@ -27,13 +23,17 @@ export const artesanoSchema = z.object({
     (val) => (val !== undefined && val !== null && val !== "" ? Number(val) : val),
     z
       .number({
-        required_error: "La localidad es obligatoria",
-        invalid_type_error: "La localidad debe ser un número entero",
-        message: "La localidad es obligatoria"
+        error: "La localidad es obligatoria"
       })
       .int("La localidad debe ser un número entero")
       .positive("La localidad debe ser un identificador válido")
-  )
+  ),
+
+  usuarioId: z
+    .string({
+      error: "El usuarioId es obligatorio"
+    })
+    .uuid("El usuarioId debe ser un UUID válido")
 });
 
 // DTO para Actualización Parcial (PATCH / PUT)
@@ -53,8 +53,7 @@ const DIRECCIONES = ["asc", "desc"];
 export const consultarArtesanosSchema = z.object({
   nombre: z
     .string({
-      invalid_type_error: "El nombre debe ser un texto",
-      message: "El nombre debe ser un texto"
+      error: "El nombre debe ser un texto"
     })
     .trim()
     .min(1, "El nombre no puede estar vacío")
@@ -68,8 +67,7 @@ export const consultarArtesanosSchema = z.object({
     },
     z
       .number({
-        invalid_type_error: "El rubro debe ser un número",
-        message: "El rubro debe ser un número"
+        error: "El rubro debe ser un número"
       })
       .int("El rubro debe ser un número entero")
       .positive("El rubro debe ser un identificador válido")
@@ -84,8 +82,7 @@ export const consultarArtesanosSchema = z.object({
     },
     z
       .number({
-        invalid_type_error: "La localidad debe ser un número",
-        message: "La localidad debe ser un número"
+        error: "La localidad debe ser un número"
       })
       .int("La localidad debe ser un número entero")
       .positive("La localidad debe ser un identificador válido")
@@ -100,8 +97,7 @@ export const consultarArtesanosSchema = z.object({
     },
     z
       .number({
-        invalid_type_error: "La provincia debe ser un número",
-        message: "La provincia debe ser un número"
+        error: "La provincia debe ser un número"
       })
       .int("La provincia debe ser un número entero")
       .positive("La provincia debe ser un identificador válido")
@@ -116,8 +112,7 @@ export const consultarArtesanosSchema = z.object({
     },
     z
       .number({
-        invalid_type_error: "La página debe ser un número",
-        message: "La página debe ser un número"
+        error: "La página debe ser un número"
       })
       .int("La página debe ser un número entero")
       .positive("La página debe ser un número positivo")
@@ -131,8 +126,7 @@ export const consultarArtesanosSchema = z.object({
     },
     z
       .number({
-        invalid_type_error: "El límite debe ser un número",
-        message: "El límite debe ser un número"
+        error: "El límite debe ser un número"
       })
       .int("El límite debe ser un número entero")
       .min(1, "El límite mínimo es 1")
@@ -141,8 +135,7 @@ export const consultarArtesanosSchema = z.object({
 
   ordenPor: z
     .string({
-      invalid_type_error: "El campo de ordenamiento debe ser un texto",
-      message: "Campo de ordenamiento no válido"
+      error: "Campo de ordenamiento no válido"
     })
     .default("id")
     .refine((val) => CAMPOS_ORDEN.includes(val), {
@@ -151,8 +144,7 @@ export const consultarArtesanosSchema = z.object({
 
   direccion: z
     .string({
-      invalid_type_error: "La dirección debe ser un texto",
-      message: "La dirección debe ser 'asc' o 'desc'"
+      error: "La dirección debe ser 'asc' o 'desc'"
     })
     .default("asc")
     .refine((val) => DIRECCIONES.includes(val), {

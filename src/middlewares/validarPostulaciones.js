@@ -1,7 +1,8 @@
 import {
   postulacionSchema,
   actualizarPostulacionSchema,
-  consultarPostulacionesSchema
+  consultarPostulacionesSchema,
+  resolverPostulacionSchema
 } from "../validators/postulacionesValidator.js";
 
 import { crearError, detallarErroresZod } from "../utils/errores.js";
@@ -30,6 +31,19 @@ export const validarActualizarPostulacion = (req, res, next) => {
     return next(crearError("Debe enviar al menos un campo para actualizar", 400));
   }
 
+  req.body = resultado.data;
+  next();
+};
+
+export const validarResolverPostulacion = (req, res, next) => {
+  const resultado = resolverPostulacionSchema.safeParse(req.body);
+
+  if (!resultado.success) {
+    const detalles = detallarErroresZod(resultado.error);
+    return next(crearError("Datos de resolución inválidos", 400, detalles));
+  }
+
+  req.bodyValidado = resultado.data;
   req.body = resultado.data;
   next();
 };

@@ -1,4 +1,5 @@
 import prisma from "../config/prisma.js";
+import { crearError } from "../utils/errores.js";
 
 const includeCompletoArtesano = {
   rubro: {
@@ -121,4 +122,63 @@ export const eliminarArtesano = async (id) => {
       id: Number(id)
     }
   });
+};
+export const asignarArtesano = async (dto) => {
+  return prisma.$transaction(async (tx) => {
+    const usuario = await tx.usuario.findUniqueOrThrow({
+      where: { id: dto.usuarioId },
+      include: {
+        roles: { include: { rol: true } },
+        artesano: true
+      }
+    });
+
+    const esAdmin = usuario.roles.some(
+      (a) => a.rol.nombre === "ADMINISTRADOR"
+    );
+
+    if (!usuario.activo || !esAdmin || usuario.artesano) {
+      throw crearError(
+        "Requiere administrador activo sin perfil de artesano.",
+        409
+      );
+    }
+
+    const actualizado = await tx.usuario.update({
+      where: { id: usuario.id },
+      data: {
+        artesano: {
+          create: {
+            nombre: dto.nombre,
+            rubro_id: dto.rubro_id,
+            localidad_id: dto.localidad_id
+          }
+        },
+        roles: {
+          create: {
+            rol: { connect: { nombre: "ARTESANO" } }
+          }
+        }
+      },
+      select: { artesano: true }
+    });
+
+    return actualizado.artesano;
+  });
+};
+
+export const obtenerArtesanoPorIdUsuario = async (usuarioId) => {
+  const artesano = await prisma.artesano.findUnique({
+    where: { usuarioId },
+    include: {
+      rubro: true,
+      localidad: { include: { provincia: true } }
+    }
+  });
+
+  if (!artesano) {
+    throw crearError("No se encontró un perfil de artesano asociado a este usuario.", 404);
+  }
+
+  return artesano;
 };

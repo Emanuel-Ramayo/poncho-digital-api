@@ -3,7 +3,9 @@ import {
   obtenerArtesano as obtenerArtesanoService,
   crearArtesano as crearArtesanoService,
   actualizarArtesano as actualizarArtesanoService,
-  eliminarArtesano as eliminarArtesanoService
+  eliminarArtesano as eliminarArtesanoService,
+  asignarArtesano as asignarArtesanoService,
+  obtenerArtesanoPorIdUsuario as obtenerArtesanoPorIdUsuarioService
 } from "../services/artesanosService.js";
 
 import { crearError } from "../utils/errores.js";
@@ -109,5 +111,24 @@ export const eliminarArtesano = async (req, res, next) => {
     }
 
     next(error);
+  }
+};
+
+export const asociarArtesano = async (req, res, next) => {
+  try {
+    const artesano = await asignarArtesanoService(req.bodyValidado);
+    return res.status(201).json(artesano);
+  } catch (error) {
+    return next(error);
+  }
+};
+
+export const obtenerMiPerfilArtesano = async (req, res, next) => {
+  try {
+    const usuarioId = req.contextoUsuario.id;
+    const artesano = await obtenerArtesanoPorIdUsuarioService(usuarioId);
+    return res.status(200).json(artesano);
+  } catch (error) {
+    return next(error);
   }
 };
