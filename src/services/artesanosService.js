@@ -1,7 +1,36 @@
 import prisma from "../config/prisma.js";
 import { crearError } from "../utils/errores.js";
 
-const includeCompletoArtesano = {
+// Proyección optimizada para listado público (GET /api/artesanos)
+// Aplica selección explícita (select) y relaciones anidadas restringidas
+// para devolver únicamente la información requerida de visualización:
+// nombre del artesano, nombre del rubro, nombre de localidad y nombre de provincia.
+const selectResumenArtesano = {
+  nombre: true,
+  rubro: {
+    select: {
+      nombre: true
+    }
+  },
+  localidad: {
+    select: {
+      nombre: true,
+      provincia: {
+        select: {
+          nombre: true
+        }
+      }
+    }
+  }
+};
+
+// Proyección optimizada para detalle público individual (GET /api/artesanos/:id)
+// Utiliza select explícito para no filtrar metadatos sensibles (usuarioId)
+// y recuperar la ficha completa del artesano y sus productos con categoría.
+const selectDetalleArtesano = {
+  id: true,
+  nombre: true,
+  createdAt: true,
   rubro: {
     select: {
       id: true,
@@ -9,23 +38,54 @@ const includeCompletoArtesano = {
     }
   },
   localidad: {
-    include: {
-      provincia: true
+    select: {
+      id: true,
+      nombre: true,
+      provincia: {
+        select: {
+          id: true,
+          nombre: true
+        }
+      }
     }
   },
   productos: {
-    include: {
-      categoria: true
+    select: {
+      id: true,
+      nombre: true,
+      descripcion: true,
+      precio: true,
+      categoria: {
+        select: {
+          id: true,
+          nombre: true
+        }
+      }
     }
   },
   postulaciones: {
-    include: {
-      anio: true,
+    select: {
+      id: true,
+      estado: true,
+      anio: {
+        select: {
+          anio: true
+        }
+      },
       stand: {
-        include: {
+        select: {
+          id: true,
+          numero: true,
           sector: {
-            include: {
-              pabellon: true
+            select: {
+              id: true,
+              nombre: true,
+              pabellon: {
+                select: {
+                  id: true,
+                  nombre: true
+                }
+              }
             }
           }
         }
@@ -74,7 +134,7 @@ export const listarArtesanos = async ({
       },
       skip,
       take: Number(limite),
-      include: includeCompletoArtesano
+      select: selectResumenArtesano
     }),
     prisma.artesano.count({ where })
   ]);
@@ -95,14 +155,14 @@ export const obtenerArtesano = async (id) => {
     where: {
       id: Number(id)
     },
-    include: includeCompletoArtesano
+    select: selectDetalleArtesano
   });
 };
 
 export const crearArtesano = async (datos) => {
   return await prisma.artesano.create({
     data: datos,
-    include: includeCompletoArtesano
+    select: selectDetalleArtesano
   });
 };
 
@@ -112,7 +172,7 @@ export const actualizarArtesano = async (id, datos) => {
       id: Number(id)
     },
     data: datos,
-    include: includeCompletoArtesano
+    select: selectDetalleArtesano
   });
 };
 
@@ -170,9 +230,27 @@ export const asignarArtesano = async (dto) => {
 export const obtenerArtesanoPorIdUsuario = async (usuarioId) => {
   const artesano = await prisma.artesano.findUnique({
     where: { usuarioId },
-    include: {
-      rubro: true,
-      localidad: { include: { provincia: true } }
+    select: {
+      id: true,
+      nombre: true,
+      rubro: {
+        select: {
+          id: true,
+          nombre: true
+        }
+      },
+      localidad: {
+        select: {
+          id: true,
+          nombre: true,
+          provincia: {
+            select: {
+              id: true,
+              nombre: true
+            }
+          }
+        }
+      }
     }
   });
 
