@@ -163,16 +163,17 @@ const selectResumenArtesano = {
 
 ### 3.3. Tabla de Métricas Reales
 
-Medición realizada sobre la base de datos con los 6 artesanos cargados:
+Medición automatizada y reproducible mediante el script de benchmark [`src/scripts/medirOptimizacion.js`](src/scripts/medirOptimizacion.js) (ejecutable con `npm run test:optimizacion`) sobre los 6 artesanos de prueba:
 
 | Criterio | Consulta Original (`include`) | Consulta Optimizada (`select`) | Variación / Impacto |
 | :--- | :---: | :---: | :---: |
-| **Tamaño de respuesta (Payload)** | **3.544 bytes** (~3.54 KB) | **898 bytes** (~0.89 KB) | **-74.66% de reducción en transferencia de red** |
-| **Atributos devueltos por elemento** | 16 campos en 4 niveles | 4 campos visuales esenciales | Eliminación del 75% de los campos |
+| **Tamaño Payload (Bytes)** | **3.469 B** (~3.47 KB) | **835 B** (~0.84 KB) | **-75.93% de reducción en transferencia** |
+| **Campos por elemento** | 12 atributos (4 niveles) | 4 atributos esenciales | **-66.67% de campos reducidos** |
+| **Tiempo de respuesta DB** | ~216 ms - 250 ms | ~3 ms | **Reducción sustancial de latencia interna** |
 | **Seguridad de la información** | Expone `usuarioId` (UUID) | Oculta `usuarioId` | Mayor protección de datos de usuario |
 | **Consultas a la base de datos** | 1 consulta compuesta (sin N+1) | 1 consulta compuesta (sin N+1) | Mantiene alta eficiencia en base de datos |
 
 ---
 
 ## 4. Conclusión
-La utilización estratégica de `select` y selecciones anidadas permite que la API entregue exactamente lo requerido por las interfaces de usuario. La reducción de casi el **75% en el volumen de datos transferidos** demuestra el impacto directo de eliminar la información redundante, manteniendo intactas las capacidades de filtrado, ordenamiento y paginación del endpoint.
+La utilización estratégica de `select` y selecciones anidadas permite que la API entregue exactamente lo requerido por las interfaces de usuario. La reducción de casi el **76% en el volumen de datos transferidos** demuestra el impacto directo de eliminar la información redundante, manteniendo intactas las capacidades de filtrado, ordenamiento y paginación del endpoint.
