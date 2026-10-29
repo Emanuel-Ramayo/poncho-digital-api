@@ -14,8 +14,8 @@ router.get("/", validarConsultaArtesanos, listarArtesanos);
 router.get(
   "/me",autenticarUsuario,cargarContextoUsuario,autorizarRoles("ARTESANO"),obtenerMiPerfilArtesano);
 
-// Detalle público por ID
-router.get("/:id", validarId, obtenerArtesano);
+// Detalle ARTESANO por ID  (Solo ADMINISTRADOR)
+router.get("/:id",autenticarUsuario,cargarContextoUsuario,autorizarRoles("ADMINISTRADOR"),validarId, obtenerArtesano);
 
 // Alta de artesano (Solo ADMINISTRADOR)
 router.post("/",autenticarUsuario,cargarContextoUsuario,autorizarRoles("ADMINISTRADOR"),validarArtesano,crearArtesano);
