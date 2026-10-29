@@ -24,68 +24,46 @@ const selectResumenArtesano = {
   }
 };
 
-// Proyección optimizada para detalle público individual (GET /api/artesanos/:id)
-// Utiliza select explícito para no filtrar metadatos sensibles (usuarioId)
-// y recuperar la ficha completa del artesano y sus productos con categoría.
-const selectDetalleArtesano = {
-  id: true,
-  nombre: true,
-  createdAt: true,
-  rubro: {
-    select: {
-      id: true,
-      nombre: true
-    }
-  },
-  localidad: {
+//Detalle completo de un artesano, incluyendo datos de usuario, rubro, localidad, productos y postulaciones. 
+const includeDetalleArtesano = {
+  // Incluye todos los datos de la cuenta de usuario vinculada
+  usuario: {
     select: {
       id: true,
       nombre: true,
-      provincia: {
+      email: true,
+      activo: true,
+      createdAt: true,
+      roles: {
         select: {
-          id: true,
-          nombre: true
+          rol: {
+            select: {
+              nombre: true
+            }
+          }
         }
       }
+    }
+  },
+  rubro: true,
+  localidad: {
+    include: {
+      provincia: true
     }
   },
   productos: {
-    select: {
-      id: true,
-      nombre: true,
-      descripcion: true,
-      precio: true,
-      categoria: {
-        select: {
-          id: true,
-          nombre: true
-        }
-      }
+    include: {
+      categoria: true
     }
   },
   postulaciones: {
-    select: {
-      id: true,
-      estado: true,
-      anio: {
-        select: {
-          anio: true
-        }
-      },
+    include: {
+      anio: true,
       stand: {
-        select: {
-          id: true,
-          numero: true,
+        include: {
           sector: {
-            select: {
-              id: true,
-              nombre: true,
-              pabellon: {
-                select: {
-                  id: true,
-                  nombre: true
-                }
-              }
+            include: {
+              pabellon: true
             }
           }
         }
@@ -155,7 +133,7 @@ export const obtenerArtesano = async (id) => {
     where: {
       id: Number(id)
     },
-    select: selectDetalleArtesano
+    include: includeDetalleArtesano
   });
 };
 
