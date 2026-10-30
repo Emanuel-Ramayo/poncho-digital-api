@@ -1,7 +1,54 @@
 import prisma from "../config/prisma.js";
 import { crearError } from "../utils/errores.js";
 
-const includeCompletoArtesano = {
+// Proyección optimizada para listado público (GET /api/artesanos)
+// Aplica selección explícita (select) y relaciones anidadas restringidas
+// para devolver únicamente la información requerida de visualización:
+// nombre del artesano, nombre del rubro, nombre de localidad y nombre de provincia.
+const selectResumenArtesano = {
+  nombre: true,
+  rubro: {
+    select: {
+      nombre: true
+    }
+  },
+  localidad: {
+    select: {
+      nombre: true,
+      provincia: {
+        select: {
+          nombre: true
+        }
+      }
+    }
+  }
+};
+
+// Detalle completo de un artesano optimizado para administrador/detalle.
+// Aplica select explicito en todos los niveles para mostrar la informacion
+// relevante de usuario, rubro, localidad, productos y postulaciones,
+// evitando exponer campos innecesarios como createdAt y updatedAt.
+const selectDetalleArtesano = {
+  id: true,
+  nombre: true,
+  usuario: {
+    select: {
+      id: true,
+      nombre: true,
+      email: true,
+      activo: true,
+      roles: {
+        select: {
+          rol: {
+            select: {
+              id: true,
+              nombre: true
+            }
+          }
+        }
+      }
+    }
+  },
   rubro: {
     select: {
       id: true,
@@ -9,23 +56,56 @@ const includeCompletoArtesano = {
     }
   },
   localidad: {
-    include: {
-      provincia: true
+    select: {
+      id: true,
+      nombre: true,
+      provincia: {
+        select: {
+          id: true,
+          nombre: true
+        }
+      }
     }
   },
   productos: {
-    include: {
-      categoria: true
+    select: {
+      id: true,
+      nombre: true,
+      descripcion: true,
+      precio: true,
+      categoria: {
+        select: {
+          id: true,
+          nombre: true
+        }
+      }
     }
   },
   postulaciones: {
-    include: {
-      anio: true,
+    select: {
+      id: true,
+      estado: true,
+      anio: {
+        select: {
+          id: true,
+          anio: true
+        }
+      },
       stand: {
-        include: {
+        select: {
+          id: true,
+          numero: true,
+          disponible: true,
           sector: {
-            include: {
-              pabellon: true
+            select: {
+              id: true,
+              nombre: true,
+              pabellon: {
+                select: {
+                  id: true,
+                  nombre: true
+                }
+              }
             }
           }
         }
@@ -33,6 +113,7 @@ const includeCompletoArtesano = {
     }
   }
 };
+
 
 export const listarArtesanos = async ({
   nombre,
@@ -74,7 +155,7 @@ export const listarArtesanos = async ({
       },
       skip,
       take: Number(limite),
-      include: includeCompletoArtesano
+      select: selectResumenArtesano
     }),
     prisma.artesano.count({ where })
   ]);
@@ -95,14 +176,14 @@ export const obtenerArtesano = async (id) => {
     where: {
       id: Number(id)
     },
-    include: includeCompletoArtesano
+    select: selectDetalleArtesano
   });
 };
 
 export const crearArtesano = async (datos) => {
   return await prisma.artesano.create({
     data: datos,
-    include: includeCompletoArtesano
+    select: selectDetalleArtesano
   });
 };
 
@@ -112,7 +193,7 @@ export const actualizarArtesano = async (id, datos) => {
       id: Number(id)
     },
     data: datos,
-    include: includeCompletoArtesano
+    select: selectDetalleArtesano
   });
 };
 
@@ -170,9 +251,27 @@ export const asignarArtesano = async (dto) => {
 export const obtenerArtesanoPorIdUsuario = async (usuarioId) => {
   const artesano = await prisma.artesano.findUnique({
     where: { usuarioId },
-    include: {
-      rubro: true,
-      localidad: { include: { provincia: true } }
+    select: {
+      id: true,
+      nombre: true,
+      rubro: {
+        select: {
+          id: true,
+          nombre: true
+        }
+      },
+      localidad: {
+        select: {
+          id: true,
+          nombre: true,
+          provincia: {
+            select: {
+              id: true,
+              nombre: true
+            }
+          }
+        }
+      }
     }
   });
 
