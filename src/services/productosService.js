@@ -1,11 +1,36 @@
 import prisma from "../config/prisma.js";
 import { crearError } from "../utils/errores.js";
 
-const includeCompletoProducto = {
-  categoria: true,
+// Proyección optimizada para listado público (GET /api/productos)
+// Devuelve únicamente: nombre, precio, nombre de categoría y nombre del artesano
+const selectResumenProducto = {
+  nombre: true,
+  precio: true,
+  categoria: {
+    select: {
+      nombre: true
+    }
+  },
   artesano: {
     select: {
-      id: true,
+      nombre: true
+    }
+  }
+};
+
+// Proyección detallada para producto
+// Devuelve: id, nombre, precio, categoria (nombre) y artesano (nombre)
+const selectCompletoProducto = {
+  id: true,
+  nombre: true,
+  precio: true,
+  categoria: {
+    select: {
+      nombre: true
+    }
+  },
+  artesano: {
+    select: {
       nombre: true
     }
   }
@@ -52,7 +77,7 @@ export const listarProductos = async ({
       orderBy: { [ordenPor]: direccion },
       skip,
       take: limite,
-      include: includeCompletoProducto
+      select: selectResumenProducto
     }),
     prisma.producto.count({ where })
   ]);
@@ -72,7 +97,7 @@ export const listarProductos = async ({
 export const listarMisProductos = async (artesanoId) => {
   return await prisma.producto.findMany({
     where: { artesano_id: artesanoId },
-    include: includeCompletoProducto,
+    select: selectCompletoProducto,
     orderBy: { id: "asc" }
   });
 };
@@ -81,7 +106,7 @@ export const listarMisProductos = async (artesanoId) => {
 export const obtenerProducto = async (id) => {
   const producto = await prisma.producto.findUnique({
     where: { id: Number(id) },
-    include: includeCompletoProducto
+    select: selectCompletoProducto
   });
 
   if (!producto) {
@@ -98,7 +123,7 @@ export const crearProducto = async (datos, artesanoId) => {
       ...datos,
       artesano_id: artesanoId
     },
-    include: includeCompletoProducto
+    select: selectCompletoProducto
   });
 };
 
@@ -121,7 +146,7 @@ export const actualizarProducto = async (id, artesanoId, datos) => {
 
   return await prisma.producto.findUnique({
     where: { id: numId },
-    include: includeCompletoProducto
+    select: selectCompletoProducto
   });
 };
 

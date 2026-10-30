@@ -24,20 +24,24 @@ const selectResumenArtesano = {
   }
 };
 
-//Detalle completo de un artesano, incluyendo datos de usuario, rubro, localidad, productos y postulaciones. 
-const includeDetalleArtesano = {
-  // Incluye todos los datos de la cuenta de usuario vinculada
+// Detalle completo de un artesano optimizado para administrador/detalle.
+// Aplica select explicito en todos los niveles para mostrar la informacion
+// relevante de usuario, rubro, localidad, productos y postulaciones,
+// evitando exponer campos innecesarios como createdAt y updatedAt.
+const selectDetalleArtesano = {
+  id: true,
+  nombre: true,
   usuario: {
     select: {
       id: true,
       nombre: true,
       email: true,
       activo: true,
-      createdAt: true,
       roles: {
         select: {
           rol: {
             select: {
+              id: true,
               nombre: true
             }
           }
@@ -45,25 +49,63 @@ const includeDetalleArtesano = {
       }
     }
   },
-  rubro: true,
+  rubro: {
+    select: {
+      id: true,
+      nombre: true
+    }
+  },
   localidad: {
-    include: {
-      provincia: true
+    select: {
+      id: true,
+      nombre: true,
+      provincia: {
+        select: {
+          id: true,
+          nombre: true
+        }
+      }
     }
   },
   productos: {
-    include: {
-      categoria: true
+    select: {
+      id: true,
+      nombre: true,
+      descripcion: true,
+      precio: true,
+      categoria: {
+        select: {
+          id: true,
+          nombre: true
+        }
+      }
     }
   },
   postulaciones: {
-    include: {
-      anio: true,
+    select: {
+      id: true,
+      estado: true,
+      anio: {
+        select: {
+          id: true,
+          anio: true
+        }
+      },
       stand: {
-        include: {
+        select: {
+          id: true,
+          numero: true,
+          disponible: true,
           sector: {
-            include: {
-              pabellon: true
+            select: {
+              id: true,
+              nombre: true,
+              pabellon: {
+                select: {
+                  id: true,
+                  nombre: true
+                }
+              }
             }
           }
         }
@@ -71,6 +113,7 @@ const includeDetalleArtesano = {
     }
   }
 };
+
 
 export const listarArtesanos = async ({
   nombre,
@@ -133,7 +176,7 @@ export const obtenerArtesano = async (id) => {
     where: {
       id: Number(id)
     },
-    include: includeDetalleArtesano
+    select: selectDetalleArtesano
   });
 };
 
