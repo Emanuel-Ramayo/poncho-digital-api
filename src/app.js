@@ -1,4 +1,6 @@
 import express from 'express';
+import swaggerUi from 'swagger-ui-express';
+import { readFileSync } from 'node:fs';
 import postulacionesRoutes from './routes/postulacionesRoutes.js';
 import standsRoutes from './routes/standsRoutes.js';
 import productosRoutes from './routes/productosRoutes.js';
@@ -15,8 +17,15 @@ app.use(logger); //Middleware para registrar las solicitudes entrantes
 app.use(express.json());
 const PORT =  3000;
 app.get('/', (req, res) => {
+    // #swagger.ignore = true
     res.send('Bienvenido a la API REST de Poncho digital');
 });
+
+const swaggerDocument = JSON.parse(
+    readFileSync(new URL("../swagger-output.json", import.meta.url), "utf8"),
+);
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 app.use("/api/postulaciones", postulacionesRoutes);
 app.use("/api/stands", standsRoutes);
 app.use("/api/productos", productosRoutes);
