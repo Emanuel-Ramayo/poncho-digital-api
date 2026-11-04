@@ -88,6 +88,7 @@ test("POST /api/usuarios/login devuelve token y GET /me lo acepta", async () => 
     .set("Authorization", `Bearer ${login.body.token}`);
 
   assert.equal(perfil.status, 200);
+  assert.equal(perfil.body.email, undefined);
   assert.equal(perfil.body.usuario.email, admin.email);
   assert.deepEqual(perfil.body.usuario.roles, ["ADMINISTRADOR"]);
 });
@@ -130,6 +131,7 @@ test("POST /api/usuarios/registro-artesano crea cuenta, artesano y postulación 
     .post("/api/usuarios/registro-artesano")
     .send({
       nombre: "Artesano Uno",
+      dni: "38123456",
       email: "artesano1@test.com",
       password: "Password123!",
       rubro_id: datosBase.rubro_id,
@@ -139,8 +141,77 @@ test("POST /api/usuarios/registro-artesano crea cuenta, artesano y postulación 
 
   assert.equal(respuesta.status, 201);
   assert.ok(respuesta.body.artesano.id);
+  assert.equal(respuesta.body.artesano.dni, "38123456");
   assert.equal(respuesta.body.postulacion.estado, "PENDIENTE");
   assert.equal(respuesta.body.postulacion.anio_id, datosBase.anio_id);
+});
+
+// Verifica la unicidad del DNI al registrar artesanos (misma persona con otro correo no puede duplicar perfil)
+test("POST /api/usuarios/registro-artesano rechaza un DNI duplicado con 409 aunque use otro email", async () => {
+  await request(app)
+    .post("/api/usuarios/registro-artesano")
+    .send({
+      nombre: "Juan Catamarca",
+      dni: "38123456",
+      email: "juan1@test.com",
+      password: "Password123!",
+      rubro_id: datosBase.rubro_id,
+      localidad_id: datosBase.localidad_id,
+      anio_id: datosBase.anio_id
+    })
+    .expect(201);
+
+  const duplicado = await request(app)
+    .post("/api/usuarios/registro-artesano")
+    .send({
+      nombre: "Juan Catamarca",
+      dni: "38123456",
+      email: "juan2@test.com",
+      password: "Password123!",
+      rubro_id: datosBase.rubro_id,
+      localidad_id: datosBase.localidad_id,
+      anio_id: datosBase.anio_id
+    });
+
+  assert.equal(duplicado.status, 409);
+  assert.match(duplicado.body.error, /Ya existe un artesano registrado con ese DNI/i);
+
+  // Verifica que el segundo usuario no se haya creado en la BD
+  const segundoUsuario = await prisma.usuario.findUnique({
+    where: { email: "juan2@test.com" }
+  });
+  assert.equal(segundoUsuario, null);
+});
+
+// Verifica que dos artesanos con el mismo nombre pero distinto DNI puedan registrarse correctamente
+test("POST /api/usuarios/registro-artesano permite el mismo nombre si el DNI y el email son distintos", async () => {
+  const primero = await request(app)
+    .post("/api/usuarios/registro-artesano")
+    .send({
+      nombre: "María Gómez",
+      dni: "35111222",
+      email: "maria1@test.com",
+      password: "Password123!",
+      rubro_id: datosBase.rubro_id,
+      localidad_id: datosBase.localidad_id,
+      anio_id: datosBase.anio_id
+    });
+
+  const segundo = await request(app)
+    .post("/api/usuarios/registro-artesano")
+    .send({
+      nombre: "María Gómez",
+      dni: "39333444",
+      email: "maria2@test.com",
+      password: "Password123!",
+      rubro_id: datosBase.rubro_id,
+      localidad_id: datosBase.localidad_id,
+      anio_id: datosBase.anio_id
+    });
+
+  assert.equal(primero.status, 201);
+  assert.equal(segundo.status, 201);
+  assert.notEqual(primero.body.artesano.id, segundo.body.artesano.id);
 });
 
 // Verifica que solo un ADMINISTRADOR pueda crear otro administrador

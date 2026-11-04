@@ -7,46 +7,62 @@ import {
 } from "../src/validators/artesanosValidator.js";
 
 const UUID_VALIDO = "550e8400-e29b-41d4-a716-446655440000";
+const DNI_VALIDO = "38123456";
 
 const casosCreacion = [
   [
     "datos válidos completos",
-    { nombre: "María Catamarca", rubro_id: 1, localidad_id: 2, usuarioId: UUID_VALIDO },
+    { nombre: "María Catamarca", dni: DNI_VALIDO, rubro_id: 1, localidad_id: 2, usuarioId: UUID_VALIDO },
     true
   ],
   [
     "nombre ausente",
-    { rubro_id: 1, localidad_id: 2, usuarioId: UUID_VALIDO },
+    { dni: DNI_VALIDO, rubro_id: 1, localidad_id: 2, usuarioId: UUID_VALIDO },
     false
   ],
   [
     "nombre vacío con espacios",
-    { nombre: "   ", rubro_id: 1, localidad_id: 2, usuarioId: UUID_VALIDO },
+    { nombre: "   ", dni: DNI_VALIDO, rubro_id: 1, localidad_id: 2, usuarioId: UUID_VALIDO },
+    false
+  ],
+  [
+    "dni ausente",
+    { nombre: "María Catamarca", rubro_id: 1, localidad_id: 2, usuarioId: UUID_VALIDO },
+    false
+  ],
+  [
+    "dni con letras o formato inválido",
+    { nombre: "María Catamarca", dni: "1234ABC", rubro_id: 1, localidad_id: 2, usuarioId: UUID_VALIDO },
+    false
+  ],
+  [
+    "dni demasiado corto (menos de 7 dígitos)",
+    { nombre: "María Catamarca", dni: "123456", rubro_id: 1, localidad_id: 2, usuarioId: UUID_VALIDO },
     false
   ],
   [
     "rubro_id igual a cero",
-    { nombre: "María Catamarca", rubro_id: 0, localidad_id: 2, usuarioId: UUID_VALIDO },
+    { nombre: "María Catamarca", dni: DNI_VALIDO, rubro_id: 0, localidad_id: 2, usuarioId: UUID_VALIDO },
     false
   ],
   [
     "rubro_id negativo",
-    { nombre: "María Catamarca", rubro_id: -5, localidad_id: 2, usuarioId: UUID_VALIDO },
+    { nombre: "María Catamarca", dni: DNI_VALIDO, rubro_id: -5, localidad_id: 2, usuarioId: UUID_VALIDO },
     false
   ],
   [
     "rubro_id decimal",
-    { nombre: "María Catamarca", rubro_id: 1.5, localidad_id: 2, usuarioId: UUID_VALIDO },
+    { nombre: "María Catamarca", dni: DNI_VALIDO, rubro_id: 1.5, localidad_id: 2, usuarioId: UUID_VALIDO },
     false
   ],
   [
     "localidad_id ausente",
-    { nombre: "María Catamarca", rubro_id: 1, usuarioId: UUID_VALIDO },
+    { nombre: "María Catamarca", dni: DNI_VALIDO, rubro_id: 1, usuarioId: UUID_VALIDO },
     false
   ],
   [
     "usuarioId con formato inválido",
-    { nombre: "María Catamarca", rubro_id: 1, localidad_id: 2, usuarioId: "no-es-uuid" },
+    { nombre: "María Catamarca", dni: DNI_VALIDO, rubro_id: 1, localidad_id: 2, usuarioId: "no-es-uuid" },
     false
   ]
 ];
@@ -72,4 +88,3 @@ test("consultarArtesanosSchema: aplica valores por defecto de paginación y rech
   const limiteInvalido = consultarArtesanosSchema.safeParse({ limite: 51 });
   assert.equal(limiteInvalido.success, false);
 });
-

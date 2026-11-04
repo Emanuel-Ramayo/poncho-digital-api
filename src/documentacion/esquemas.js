@@ -77,9 +77,10 @@ export const NuevoArtesano = {
     target: "openapi-3.0",
     io: "input"
   }),
-  required: ["nombre", "rubro_id", "localidad_id", "usuarioId"],
+  required: ["nombre", "dni", "rubro_id", "localidad_id", "usuarioId"],
   example: {
     nombre: "María Catamarca",
+    dni: "38123456",
     rubro_id: 1,
     localidad_id: 1,
     usuarioId: "550e8400-e29b-41d4-a716-446655440000"
@@ -93,6 +94,7 @@ export const ActualizarArtesano = {
   }),
   example: {
     nombre: "María Catamarca Modificado",
+    dni: "38123456",
     rubro_id: 2,
     localidad_id: 1
   }
@@ -167,10 +169,11 @@ export const ListadoArtesanos = {
 
 export const PerfilArtesano = {
   type: "object",
-  required: ["id", "nombre", "rubro", "localidad"],
+  required: ["id", "nombre", "dni", "rubro", "localidad"],
   properties: {
     id: { type: "integer" },
     nombre: { type: "string" },
+    dni: { type: "string" },
     rubro: {
       type: "object",
       required: ["id", "nombre"],
@@ -199,6 +202,7 @@ export const PerfilArtesano = {
   example: {
     id: 1,
     nombre: "María Catamarca",
+    dni: "38123456",
     rubro: { id: 1, nombre: "Textil" },
     localidad: {
       id: 1,
@@ -210,10 +214,11 @@ export const PerfilArtesano = {
 
 export const ArtesanoDetalle = {
   type: "object",
-  required: ["id", "nombre", "usuario", "rubro", "localidad", "productos", "postulaciones"],
+  required: ["id", "nombre", "dni", "usuario", "rubro", "localidad", "productos", "postulaciones"],
   properties: {
     id: { type: "integer" },
     nombre: { type: "string" },
+    dni: { type: "string" },
     usuario: {
       type: "object",
       required: ["id", "nombre", "email", "activo", "roles"],
@@ -312,6 +317,7 @@ export const ArtesanoDetalle = {
   example: {
     id: 1,
     nombre: "María Catamarca",
+    dni: "38123456",
     usuario: {
       id: "550e8400-e29b-41d4-a716-446655440000",
       nombre: "María Catamarca",
@@ -654,6 +660,7 @@ export const RegistroArtesano = {
   }),
   example: {
     nombre: "María Catamarca",
+    dni: "38123456",
     email: "maria@poncho.gob.ar",
     password: "ClaveSegura2026!",
     rubro_id: 1,
@@ -681,6 +688,7 @@ export const AsignarArtesano = {
   example: {
     usuarioId: "550e8400-e29b-41d4-a716-446655440000",
     nombre: "Administrador Artesano",
+    dni: "30123456",
     rubro_id: 1,
     localidad_id: 1
   }
@@ -766,6 +774,7 @@ export const RespuestaRegistroArtesano = {
       type: "object",
       properties: {
         id: { type: "integer" },
+        dni: { type: "string" },
         rubro_id: { type: "integer" },
         localidad_id: { type: "integer" }
       }
@@ -786,6 +795,7 @@ export const RespuestaRegistroArtesano = {
     activo: true,
     artesano: {
       id: 1,
+      dni: "38123456",
       rubro_id: 1,
       localidad_id: 1
     },

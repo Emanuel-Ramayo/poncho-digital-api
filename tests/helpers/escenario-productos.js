@@ -26,13 +26,14 @@ export async function crearEscenario(app, prisma) {
     where: { nombre: "ARTESANO" }
   });
 
-  const registrarArtesanoActivo = async (nombre) => {
+  const registrarArtesanoActivo = async (nombre, dni) => {
     const email = `${nombre.toLowerCase()}@clase10.test`;
 
     const { body: usuario } = await request(app)
       .post("/api/usuarios/registro-artesano")
       .send({
         nombre,
+        dni,
         email,
         password,
         rubro_id: rubro.id,
@@ -56,8 +57,8 @@ export async function crearEscenario(app, prisma) {
     return { usuario, token: sesion.token };
   };
 
-  const { usuario: ana, token: tokenAna } = await registrarArtesanoActivo("Ana");
-  const { usuario: bruno, token: tokenBruno } = await registrarArtesanoActivo("Bruno");
+  const { usuario: ana, token: tokenAna } = await registrarArtesanoActivo("Ana", "38000001");
+  const { usuario: bruno, token: tokenBruno } = await registrarArtesanoActivo("Bruno", "38000002");
 
   // Usuario básico sin rol ARTESANO para probar 403 Forbidden
   const emailSinRol = "visitante@clase10.test";
@@ -94,4 +95,3 @@ export async function crearEscenario(app, prisma) {
     anio
   };
 }
-

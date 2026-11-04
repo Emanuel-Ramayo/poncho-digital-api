@@ -30,6 +30,12 @@ export const crearArtesano = async (req, res, next) => {
 
     res.status(201).json(artesano);
   } catch (error) {
+    if (error.code === "P2002") {
+      return next(
+        crearError("Ya existe un artesano registrado con ese DNI o usuario", 409)
+      );
+    }
+
     // Clave foránea inexistente (rubro_id o localidad_id no encontrados en la BD)
     if (error.code === "P2003") {
       return next(
@@ -71,6 +77,12 @@ export const actualizarArtesano = async (req, res, next) => {
     // Registro no encontrado para actualizar
     if (error.code === "P2025") {
       return next(crearError("Artesano no encontrado", 404));
+    }
+
+    if (error.code === "P2002") {
+      return next(
+        crearError("Ya existe un artesano registrado con ese DNI o usuario", 409)
+      );
     }
 
     // Clave foránea inválida en la actualización

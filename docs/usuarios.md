@@ -74,7 +74,7 @@ Crea una cuenta básica (sin roles).
 Registro público de un artesano. En una sola transacción crea:
 
 1. La cuenta de usuario (activa, sin rol).
-2. El perfil de `Artesano`.
+2. El perfil de `Artesano` (validando unicidad por `dni`).
 3. Una `Postulacion` en estado `PENDIENTE`.
 
 El rol `ARTESANO` **no** se asigna todavía: se asigna cuando un administrador aprueba la postulación.
@@ -84,6 +84,7 @@ El rol `ARTESANO` **no** se asigna todavía: se asigna cuando un administrador a
 ```json
 {
   "nombre": "Artesano Uno",
+  "dni": "38123456",
   "email": "artesano1@example.com",
   "password": "Password123!",
   "rubro_id": 1,
@@ -102,15 +103,15 @@ El rol `ARTESANO` **no** se asigna todavía: se asigna cuando un administrador a
   "nombre": "Artesano Uno",
   "email": "artesano1@example.com",
   "activo": true,
-  "artesano": { "id": 1, "rubro_id": 1, "localidad_id": 1 },
+  "artesano": { "id": 1, "dni": "38123456", "rubro_id": 1, "localidad_id": 1 },
   "postulacion": { "id": 1, "anio_id": 1, "estado": "PENDIENTE" }
 }
 ```
 
 | Código | Caso |
 | --- | --- |
-| `400` | Datos inválidos o referencias (`rubro_id`, `localidad_id`) inexistentes. |
-| `409` | Email o artesano ya registrado. |
+| `400` | Datos inválidos (p. ej. DNI fuera de formato de 7-8 dígitos) o referencias (`rubro_id`, `localidad_id`) inexistentes. |
+| `409` | Email o DNI de artesano ya registrado. |
 
 ### POST `/api/usuarios/login`
 
@@ -182,6 +183,7 @@ Vincula un perfil de artesano a una cuenta existente.
 {
   "usuarioId": "uuid",
   "nombre": "Artesano Existente",
+  "dni": "30123456",
   "rubro_id": 1,
   "localidad_id": 1
 }
@@ -224,7 +226,7 @@ Activa o desactiva una cuenta. Una cuenta inactiva no puede iniciar sesión.
 | `401` | Falta autenticación o el token no es válido. |
 | `403` | Autenticado sin permisos. |
 | `404` | Recurso inexistente. |
-| `409` | Conflicto (email duplicado, transición inválida). |
+| `409` | Conflicto (email o DNI duplicado, transición inválida). |
 | `500` | Error interno no controlado. |
 
 ## Ejemplo con curl

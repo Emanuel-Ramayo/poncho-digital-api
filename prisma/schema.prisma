@@ -16,6 +16,7 @@ enum EstadoPostulacion {
 model Artesano {
   id            Int           @id @default(autoincrement())
   nombre        String
+  dni           String        @unique
 
   rubro_id      Int
   rubro         Rubro         @relation(fields: [rubro_id], references: [id], onDelete: Restrict)

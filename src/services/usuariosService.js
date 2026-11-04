@@ -45,7 +45,21 @@ export const registrarUsuario = async (registrarUsuarioDto) => {
 // Crea cuenta, Artesano y solicitud PENDIENTE en una sola transacción atómica.
 // NO se asigna el rol ARTESANO aquí para que la cuenta no opere productos mientras esté pendiente.
 export const registrarUsuarioArtesano = async (dto) => {
-  const { nombre, email, password, rubro_id, localidad_id, anio_id } = dto;
+  const { nombre, dni, email, password, rubro_id, localidad_id, anio_id } = dto;
+
+  const [usuarioExistente, artesanoExistente] = await Promise.all([
+    prisma.usuario.findUnique({ where: { email } }),
+    prisma.artesano.findUnique({ where: { dni } })
+  ]);
+
+  if (usuarioExistente) {
+    throw crearError("Ya existe un usuario con ese email.", 409);
+  }
+
+  if (artesanoExistente) {
+    throw crearError("Ya existe un artesano registrado con ese DNI.", 409);
+  }
+
   const passwordHash = await bcrypt.hash(password, FACTOR_COSTO);
 
   return await prisma.$transaction(async (tx) => {
@@ -63,6 +77,7 @@ export const registrarUsuarioArtesano = async (dto) => {
     const artesano = await tx.artesano.create({
       data: {
         nombre,
+        dni,
         rubro_id,
         localidad_id,
         usuarioId: usuario.id
@@ -97,6 +112,7 @@ export const registrarUsuarioArtesano = async (dto) => {
       activo: usuario.activo,
       artesano: {
         id: artesano.id,
+        dni: artesano.dni,
         rubro_id: artesano.rubro_id,
         localidad_id: artesano.localidad_id
       },

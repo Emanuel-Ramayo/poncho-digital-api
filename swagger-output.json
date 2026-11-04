@@ -1171,6 +1171,14 @@
             }
           },
           {
+            "name": "dni",
+            "in": "query",
+            "description": "Filtrar por DNI del artesano.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
             "name": "rubro_id",
             "in": "query",
             "description": "Filtrar por ID del rubro.",
@@ -1227,6 +1235,7 @@
               "enum": [
                 "id",
                 "nombre",
+                "dni",
                 "rubro_id",
                 "localidad_id",
                 "createdAt"
@@ -1309,7 +1318,7 @@
             "description": "Cuenta inactiva o se requiere rol ADMINISTRADOR."
           },
           "409": {
-            "description": "Conflicto con registros existentes (usuario ya asociado)."
+            "description": "Conflicto con registros existentes (DNI o usuario ya asociado)."
           }
         },
         "security": [
@@ -1507,7 +1516,7 @@
             "description": "Artesano no encontrado."
           },
           "409": {
-            "description": "Conflicto con registros existentes."
+            "description": "Conflicto con registros existentes (DNI o usuario ya asociado)."
           }
         },
         "security": [
@@ -2055,6 +2064,10 @@
             "type": "string",
             "minLength": 1
           },
+          "dni": {
+            "type": "string",
+            "pattern": "^\\d{7,8}$"
+          },
           "rubro_id": {
             "type": "integer",
             "minimum": 0,
@@ -2075,6 +2088,7 @@
         },
         "example": {
           "nombre": "María Catamarca Modificado",
+          "dni": "38123456",
           "rubro_id": 2,
           "localidad_id": 1
         }
@@ -2181,6 +2195,7 @@
         "required": [
           "id",
           "nombre",
+          "dni",
           "usuario",
           "rubro",
           "localidad",
@@ -2192,6 +2207,9 @@
             "type": "integer"
           },
           "nombre": {
+            "type": "string"
+          },
+          "dni": {
             "type": "string"
           },
           "usuario": {
@@ -2361,6 +2379,7 @@
         "example": {
           "id": 1,
           "nombre": "María Catamarca",
+          "dni": "38123456",
           "usuario": {
             "id": "550e8400-e29b-41d4-a716-446655440000",
             "nombre": "María Catamarca",
@@ -2458,6 +2477,10 @@
             "minLength": 2,
             "maxLength": 120
           },
+          "dni": {
+            "type": "string",
+            "pattern": "^\\d{7,8}$"
+          },
           "rubro_id": {
             "type": "integer",
             "minimum": 0,
@@ -2478,6 +2501,7 @@
         },
         "required": [
           "nombre",
+          "dni",
           "rubro_id",
           "localidad_id",
           "usuarioId"
@@ -2486,6 +2510,7 @@
         "example": {
           "usuarioId": "550e8400-e29b-41d4-a716-446655440000",
           "nombre": "Administrador Artesano",
+          "dni": "30123456",
           "rubro_id": 1,
           "localidad_id": 1
         }
@@ -2739,6 +2764,10 @@
             "type": "string",
             "minLength": 1
           },
+          "dni": {
+            "type": "string",
+            "pattern": "^\\d{7,8}$"
+          },
           "rubro_id": {
             "type": "integer",
             "minimum": 0,
@@ -2759,12 +2788,14 @@
         },
         "required": [
           "nombre",
+          "dni",
           "rubro_id",
           "localidad_id",
           "usuarioId"
         ],
         "example": {
           "nombre": "María Catamarca",
+          "dni": "38123456",
           "rubro_id": 1,
           "localidad_id": 1,
           "usuarioId": "550e8400-e29b-41d4-a716-446655440000"
@@ -2872,6 +2903,7 @@
         "required": [
           "id",
           "nombre",
+          "dni",
           "rubro",
           "localidad"
         ],
@@ -2880,6 +2912,9 @@
             "type": "integer"
           },
           "nombre": {
+            "type": "string"
+          },
+          "dni": {
             "type": "string"
           },
           "rubro": {
@@ -2932,6 +2967,7 @@
         "example": {
           "id": 1,
           "nombre": "María Catamarca",
+          "dni": "38123456",
           "rubro": {
             "id": 1,
             "nombre": "Textil"
@@ -3130,6 +3166,10 @@
             "type": "string",
             "minLength": 8
           },
+          "dni": {
+            "type": "string",
+            "pattern": "^\\d{7,8}$"
+          },
           "rubro_id": {
             "type": "integer",
             "minimum": 0,
@@ -3153,12 +3193,14 @@
           "nombre",
           "email",
           "password",
+          "dni",
           "rubro_id",
           "localidad_id"
         ],
         "additionalProperties": false,
         "example": {
           "nombre": "María Catamarca",
+          "dni": "38123456",
           "email": "maria@poncho.gob.ar",
           "password": "ClaveSegura2026!",
           "rubro_id": 1,
@@ -3292,6 +3334,9 @@
               "id": {
                 "type": "integer"
               },
+              "dni": {
+                "type": "string"
+              },
               "rubro_id": {
                 "type": "integer"
               },
@@ -3322,6 +3367,7 @@
           "activo": true,
           "artesano": {
             "id": 1,
+            "dni": "38123456",
             "rubro_id": 1,
             "localidad_id": 1
           },

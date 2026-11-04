@@ -31,6 +31,7 @@ const selectResumenArtesano = {
 const selectDetalleArtesano = {
   id: true,
   nombre: true,
+  dni: true,
   usuario: {
     select: {
       id: true,
@@ -117,6 +118,7 @@ const selectDetalleArtesano = {
 
 export const listarArtesanos = async ({
   nombre,
+  dni,
   rubro_id,
   localidad_id,
   provincia_id,
@@ -129,6 +131,10 @@ export const listarArtesanos = async ({
 
   if (nombre) {
     where.nombre = { contains: nombre, mode: "insensitive" };
+  }
+
+  if (dni) {
+    where.dni = dni;
   }
 
   if (rubro_id) {
@@ -204,6 +210,7 @@ export const eliminarArtesano = async (id) => {
     }
   });
 };
+
 export const asignarArtesano = async (dto) => {
   return prisma.$transaction(async (tx) => {
     const usuario = await tx.usuario.findUniqueOrThrow({
@@ -225,12 +232,21 @@ export const asignarArtesano = async (dto) => {
       );
     }
 
+    const artesanoExistente = await tx.artesano.findUnique({
+      where: { dni: dto.dni }
+    });
+
+    if (artesanoExistente) {
+      throw crearError("Ya existe un artesano registrado con ese DNI.", 409);
+    }
+
     const actualizado = await tx.usuario.update({
       where: { id: usuario.id },
       data: {
         artesano: {
           create: {
             nombre: dto.nombre,
+            dni: dto.dni,
             rubro_id: dto.rubro_id,
             localidad_id: dto.localidad_id
           }
@@ -254,6 +270,7 @@ export const obtenerArtesanoPorIdUsuario = async (usuarioId) => {
     select: {
       id: true,
       nombre: true,
+      dni: true,
       rubro: {
         select: {
           id: true,

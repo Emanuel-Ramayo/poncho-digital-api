@@ -18,6 +18,10 @@ router.get(
        in: "query", description: "Filtrar por nombre del artesano.",
        "@schema": { type: "string" }
      }
+     #swagger.parameters['dni'] = {
+       in: "query", description: "Filtrar por DNI del artesano.",
+       "@schema": { type: "string" }
+     }
      #swagger.parameters['rubro_id'] = {
        in: "query", description: "Filtrar por ID del rubro.",
        "@schema": { type: "integer", minimum: 1 }
@@ -40,7 +44,7 @@ router.get(
      }
      #swagger.parameters['ordenPor'] = {
        in: "query", description: "Campo de ordenamiento.",
-       "@schema": { type: "string", enum: ["id", "nombre", "rubro_id", "localidad_id", "createdAt"], default: "id" }
+       "@schema": { type: "string", enum: ["id", "nombre", "dni", "rubro_id", "localidad_id", "createdAt"], default: "id" }
      }
      #swagger.parameters['direccion'] = {
        in: "query", description: "Dirección de ordenamiento.",
@@ -209,7 +213,7 @@ router.post(
        description: "Cuenta inactiva o se requiere rol ADMINISTRADOR."
      }
      #swagger.responses[409] = {
-       description: "Conflicto con registros existentes (usuario ya asociado)."
+       description: "Conflicto con registros existentes (DNI o usuario ya asociado)."
      }
   */
   autenticarUsuario,
@@ -261,7 +265,7 @@ router.put(
        description: "Artesano no encontrado."
      }
      #swagger.responses[409] = {
-       description: "Conflicto con registros existentes."
+       description: "Conflicto con registros existentes (DNI o usuario ya asociado)."
      }
   */
   autenticarUsuario,

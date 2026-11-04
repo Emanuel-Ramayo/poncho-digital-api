@@ -9,6 +9,13 @@ export const artesanoSchema = z.object({
     .trim()
     .min(1, "El nombre es obligatorio"),
 
+  dni: z
+    .string({
+      error: "El DNI es obligatorio"
+    })
+    .trim()
+    .regex(/^\d{7,8}$/, "El DNI debe contener entre 7 y 8 dígitos numéricos"),
+
   rubro_id: z.preprocess(
     (val) => (val !== undefined && val !== null && val !== "" ? Number(val) : val),
     z
@@ -42,6 +49,7 @@ export const actualizarArtesanoSchema = artesanoSchema.partial();
 const CAMPOS_ORDEN = [
   "id",
   "nombre",
+  "dni",
   "rubro_id",
   "localidad_id",
   "createdAt"
@@ -57,6 +65,14 @@ export const consultarArtesanosSchema = z.object({
     })
     .trim()
     .min(1, "El nombre no puede estar vacío")
+    .optional(),
+
+  dni: z
+    .string({
+      error: "El DNI debe ser un texto"
+    })
+    .trim()
+    .regex(/^\d{7,8}$/, "El DNI debe contener entre 7 y 8 dígitos numéricos")
     .optional(),
 
   rubro_id: z.preprocess(

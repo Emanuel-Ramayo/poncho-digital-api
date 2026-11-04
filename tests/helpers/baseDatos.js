@@ -61,6 +61,7 @@ export const crearAdministradorPrueba = async ({
 // que es la que asigna el rol ARTESANO al usuario.
 export const crearArtesanoPrueba = async ({
   nombre = "Artesano Test",
+  dni = "38123456",
   email = "artesano@test.com",
   password = "Artesano2026!",
   rubro_id,
@@ -75,11 +76,12 @@ export const crearArtesanoPrueba = async ({
 
   // 2. Perfil de artesano vinculado a la cuenta
   const artesano = await prisma.artesano.create({
-    data: { nombre, rubro_id, localidad_id, usuarioId: usuario.id }
+    data: { nombre, dni, rubro_id, localidad_id, usuarioId: usuario.id }
   });
 
   return {
     id: artesano.id,
+    dni: artesano.dni,
     usuarioId: usuario.id,
     email,
     password

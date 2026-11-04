@@ -114,6 +114,18 @@ export const artesanoDatosSchema = z.object({
     .min(2, "El nombre debe tener al menos 2 caracteres.")
     .max(120, "El nombre no puede superar los 120 caracteres."),
 
+  dni: z
+    .string({
+      required_error: "El DNI es obligatorio",
+      invalid_type_error: "El DNI debe ser una cadena de texto",
+      error: (iss) =>
+        iss.input === undefined
+          ? "El DNI es obligatorio"
+          : "El DNI debe ser una cadena de texto"
+    })
+    .trim()
+    .regex(/^\d{7,8}$/, "El DNI debe contener entre 7 y 8 dígitos numéricos."),
+
   rubro_id: z
     .number({
       required_error: "El rubro_id es obligatorio",
@@ -142,6 +154,7 @@ export const artesanoDatosSchema = z.object({
 // POST /api/usuarios/registro-artesano (Registro público: Usuario + Artesano + Solicitud PENDIENTE)
 export const registroArtesanoSchema = registrarUsuarioSchema.extend({
   nombre: artesanoDatosSchema.shape.nombre,
+  dni: artesanoDatosSchema.shape.dni,
   rubro_id: artesanoDatosSchema.shape.rubro_id,
   localidad_id: artesanoDatosSchema.shape.localidad_id,
   anio_id: z
