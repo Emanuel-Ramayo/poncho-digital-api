@@ -1,0 +1,3424 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "API de Poncho Digital",
+    "version": "1.0.0",
+    "description": "Documentación del contrato de la API REST de Poncho Digital."
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "Servidor actual"
+    }
+  ],
+  "paths": {
+    "/api/postulaciones/": {
+      "get": {
+        "tags": [
+          "Postulaciones"
+        ],
+        "summary": "Listar postulaciones con filtros y paginación",
+        "description": "Requiere JWT válido, cuenta activa y rol ADMINISTRADOR.",
+        "parameters": [
+          {
+            "name": "estado",
+            "in": "query",
+            "description": "Filtrar por estado de la postulación.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PENDIENTE",
+                "APROBADA",
+                "RECHAZADA",
+                "CANCELADA"
+              ]
+            }
+          },
+          {
+            "name": "artesano_id",
+            "in": "query",
+            "description": "Filtrar por ID del artesano.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "anio_id",
+            "in": "query",
+            "description": "Filtrar por ID del año de postulación.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "description": "Número de página.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "description": "Elementos por página.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            }
+          },
+          {
+            "name": "ordenPor",
+            "in": "query",
+            "description": "Campo de ordenamiento.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "id",
+                "estado",
+                "artesano_id",
+                "anio_id",
+                "createdAt"
+              ],
+              "default": "id"
+            }
+          },
+          {
+            "name": "direccion",
+            "in": "query",
+            "description": "Dirección de ordenamiento.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "asc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listado paginado de postulaciones.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListadoPostulaciones"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Filtros inválidos o cabecera Bearer mal formada."
+          },
+          "401": {
+            "description": "Token ausente o inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                },
+                "example": {
+                  "error": "Se requiere un token de acceso."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ADMINISTRADOR."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Postulaciones"
+        ],
+        "summary": "Crear una nueva postulación",
+        "description": "",
+        "responses": {
+          "201": {
+            "description": "Postulación creada correctamente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Postulacion"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cuerpo inválido o artesano/año/stand inexistente."
+          },
+          "409": {
+            "description": "El artesano ya posee una postulación registrada para ese año."
+          }
+        },
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NuevaPostulacion"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/postulaciones/{id}/resolver": {
+      "patch": {
+        "tags": [
+          "Postulaciones"
+        ],
+        "summary": "Resolver el estado de una postulación pendiente",
+        "description": "Requiere JWT válido, cuenta activa y rol ADMINISTRADOR. Si pasa a APROBADA, otorga el rol ARTESANO al usuario.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID de la postulación.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Postulación resuelta correctamente."
+          },
+          "400": {
+            "description": "ID o estado inválido, o cabecera Bearer mal formada."
+          },
+          "401": {
+            "description": "Token ausente o inválido."
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ADMINISTRADOR."
+          },
+          "404": {
+            "description": "Postulación no encontrada."
+          },
+          "409": {
+            "description": "La solicitud ya ha sido resuelta previamente."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolverPostulacion"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/postulaciones/{id}": {
+      "get": {
+        "tags": [
+          "Postulaciones"
+        ],
+        "summary": "Obtener el detalle de una postulación por ID",
+        "description": "Requiere JWT válido, cuenta activa y rol ADMINISTRADOR.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID de la postulación.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle de la postulación.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Postulacion"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID inválido o cabecera Bearer mal formada."
+          },
+          "401": {
+            "description": "Token ausente o inválido."
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ADMINISTRADOR."
+          },
+          "404": {
+            "description": "Postulación no encontrada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                },
+                "example": {
+                  "error": "Postulación no encontrada"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Postulaciones"
+        ],
+        "summary": "Actualizar una postulación por ID",
+        "description": "Requiere JWT válido, cuenta activa y rol ADMINISTRADOR.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID de la postulación.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Postulación actualizada correctamente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Postulacion"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID o cuerpo inválido, o cabecera Bearer mal formada."
+          },
+          "401": {
+            "description": "Token ausente o inválido."
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ADMINISTRADOR."
+          },
+          "404": {
+            "description": "Postulación no encontrada."
+          },
+          "409": {
+            "description": "El artesano ya posee una postulación registrada para ese año."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActualizarPostulacion"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Postulaciones"
+        ],
+        "summary": "Eliminar una postulación",
+        "description": "Requiere JWT válido, cuenta activa y rol ADMINISTRADOR.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID de la postulación.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Postulación eliminada correctamente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MensajeExito"
+                },
+                "example": {
+                  "mensaje": "Postulación eliminada correctamente"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID inválido o cabecera Bearer mal formada."
+          },
+          "401": {
+            "description": "Token ausente o inválido."
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ADMINISTRADOR."
+          },
+          "404": {
+            "description": "Postulación no encontrada."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/stands/": {
+      "get": {
+        "tags": [
+          "Stands"
+        ],
+        "summary": "Listar stands con filtros y paginación",
+        "description": "",
+        "parameters": [
+          {
+            "name": "disponible",
+            "in": "query",
+            "description": "Filtrar por disponibilidad (true o false).",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "numero",
+            "in": "query",
+            "description": "Filtrar por número de stand.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "sector_id",
+            "in": "query",
+            "description": "Filtrar por ID del sector.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "pabellon_id",
+            "in": "query",
+            "description": "Filtrar por ID del pabellón.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "description": "Número de página.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "description": "Elementos por página.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            }
+          },
+          {
+            "name": "ordenPor",
+            "in": "query",
+            "description": "Campo de ordenamiento.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "id",
+                "numero",
+                "disponible",
+                "sector_id",
+                "createdAt"
+              ],
+              "default": "id"
+            }
+          },
+          {
+            "name": "direccion",
+            "in": "query",
+            "description": "Dirección de ordenamiento.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "asc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listado paginado de stands.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListadoStands"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Filtros de consulta inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      },
+      "post": {
+        "tags": [
+          "Stands"
+        ],
+        "summary": "Crear un stand",
+        "description": "Requiere JWT válido, cuenta activa y rol ADMINISTRADOR.",
+        "responses": {
+          "201": {
+            "description": "Stand creado correctamente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stand"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cuerpo inválido, sector inexistente o cabecera Bearer mal formada."
+          },
+          "401": {
+            "description": "Token ausente o inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                },
+                "example": {
+                  "error": "Se requiere un token de acceso."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ADMINISTRADOR."
+          },
+          "409": {
+            "description": "Ya existe un stand con ese número en el sector indicado."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NuevoStand"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/stands/{id}": {
+      "get": {
+        "tags": [
+          "Stands"
+        ],
+        "summary": "Obtener el detalle de un stand por ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID del stand.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle del stand.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stand"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID inválido."
+          },
+          "404": {
+            "description": "Stand no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                },
+                "example": {
+                  "error": "Stand no encontrado"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      },
+      "put": {
+        "tags": [
+          "Stands"
+        ],
+        "summary": "Actualizar un stand",
+        "description": "Requiere JWT válido, cuenta activa y rol ADMINISTRADOR.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID del stand.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stand actualizado correctamente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Stand"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID o cuerpo inválido, sector inexistente o cabecera Bearer mal formada."
+          },
+          "401": {
+            "description": "Token ausente o inválido."
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ADMINISTRADOR."
+          },
+          "404": {
+            "description": "Stand no encontrado."
+          },
+          "409": {
+            "description": "Ya existe un stand con ese número en el sector indicado."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActualizarStand"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Stands"
+        ],
+        "summary": "Eliminar un stand",
+        "description": "Requiere JWT válido, cuenta activa y rol ADMINISTRADOR.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID del stand.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stand eliminado correctamente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MensajeExito"
+                },
+                "example": {
+                  "mensaje": "Stand eliminado correctamente"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID inválido o cabecera Bearer mal formada."
+          },
+          "401": {
+            "description": "Token ausente o inválido."
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ADMINISTRADOR."
+          },
+          "404": {
+            "description": "Stand no encontrado."
+          },
+          "409": {
+            "description": "No se puede eliminar porque afecta registros relacionados."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/productos/": {
+      "get": {
+        "tags": [
+          "Productos"
+        ],
+        "summary": "Listar productos con filtros y paginación",
+        "description": "",
+        "parameters": [
+          {
+            "name": "nombre",
+            "in": "query",
+            "description": "Filtrar por nombre del producto.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "categoria_id",
+            "in": "query",
+            "description": "Filtrar por ID de la categoría.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "artesano_id",
+            "in": "query",
+            "description": "Filtrar por ID del artesano.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "precioMin",
+            "in": "query",
+            "description": "Precio mínimo.",
+            "schema": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "precioMax",
+            "in": "query",
+            "description": "Precio máximo.",
+            "schema": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "description": "Número de página.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "description": "Elementos por página.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            }
+          },
+          {
+            "name": "ordenPor",
+            "in": "query",
+            "description": "Campo de ordenamiento.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "id",
+                "nombre",
+                "precio",
+                "categoria_id",
+                "artesano_id",
+                "createdAt"
+              ],
+              "default": "id"
+            }
+          },
+          {
+            "name": "direccion",
+            "in": "query",
+            "description": "Dirección de ordenamiento.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "asc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listado paginado de productos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListadoProductos"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Filtros de consulta inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      },
+      "post": {
+        "tags": [
+          "Productos"
+        ],
+        "summary": "Crear un producto propio",
+        "description": "Requiere JWT válido, cuenta activa y rol ARTESANO. El producto se asocia al artesano autenticado.",
+        "responses": {
+          "201": {
+            "description": "Producto creado correctamente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Producto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cuerpo inválido o cabecera Bearer mal formada."
+          },
+          "401": {
+            "description": "Token ausente o inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                },
+                "example": {
+                  "error": "Se requiere un token de acceso."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ARTESANO."
+          },
+          "409": {
+            "description": "La categoría indicada no existe o conflicto de datos."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NuevoProducto"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/productos/mis-productos": {
+      "get": {
+        "tags": [
+          "Productos"
+        ],
+        "summary": "Consultar los productos propios del artesano autenticado",
+        "description": "Requiere JWT válido, cuenta activa y rol ARTESANO.",
+        "responses": {
+          "200": {
+            "description": "Listado de productos pertenecientes al artesano autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Producto"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente o inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                },
+                "example": {
+                  "error": "Se requiere un token de acceso."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ARTESANO."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/productos/{id}": {
+      "get": {
+        "tags": [
+          "Productos"
+        ],
+        "summary": "Obtener el detalle de un producto por ID",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID del producto.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle del producto.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Producto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID inválido."
+          },
+          "404": {
+            "description": "Producto no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                },
+                "example": {
+                  "error": "Producto no encontrado"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      },
+      "put": {
+        "tags": [
+          "Productos"
+        ],
+        "summary": "Actualizar un producto propio",
+        "description": "Requiere JWT válido, cuenta activa y rol ARTESANO propietario del producto.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID del producto.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Producto actualizado correctamente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Producto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID o cuerpo inválido, o cabecera Bearer mal formada."
+          },
+          "401": {
+            "description": "Token ausente o inválido."
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ARTESANO."
+          },
+          "404": {
+            "description": "Producto inexistente o perteneciente a otro artesano.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                },
+                "example": {
+                  "error": "Producto no encontrado"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActualizarProducto"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Productos"
+        ],
+        "summary": "Eliminar un producto propio",
+        "description": "Requiere JWT válido, cuenta activa y rol ARTESANO propietario del producto.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID del producto.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Producto eliminado correctamente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MensajeExito"
+                },
+                "example": {
+                  "mensaje": "Producto eliminado correctamente"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID inválido o cabecera Bearer mal formada."
+          },
+          "401": {
+            "description": "Token ausente o inválido."
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ARTESANO."
+          },
+          "404": {
+            "description": "Producto inexistente o perteneciente a otro artesano."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/artesanos/": {
+      "get": {
+        "tags": [
+          "Artesanos"
+        ],
+        "summary": "Listar artesanos con filtros y paginación",
+        "description": "",
+        "parameters": [
+          {
+            "name": "nombre",
+            "in": "query",
+            "description": "Filtrar por nombre del artesano.",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "rubro_id",
+            "in": "query",
+            "description": "Filtrar por ID del rubro.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "localidad_id",
+            "in": "query",
+            "description": "Filtrar por ID de la localidad.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "provincia_id",
+            "in": "query",
+            "description": "Filtrar por ID de la provincia.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "pagina",
+            "in": "query",
+            "description": "Número de página.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "limite",
+            "in": "query",
+            "description": "Elementos por página.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50,
+              "default": 10
+            }
+          },
+          {
+            "name": "ordenPor",
+            "in": "query",
+            "description": "Campo de ordenamiento.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "id",
+                "nombre",
+                "rubro_id",
+                "localidad_id",
+                "createdAt"
+              ],
+              "default": "id"
+            }
+          },
+          {
+            "name": "direccion",
+            "in": "query",
+            "description": "Dirección de ordenamiento.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ],
+              "default": "asc"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Listado paginado de artesanos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListadoArtesanos"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parámetros de consulta inválidos.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                }
+              }
+            }
+          }
+        },
+        "security": []
+      },
+      "post": {
+        "tags": [
+          "Artesanos"
+        ],
+        "summary": "Crear un nuevo artesano",
+        "description": "Requiere JWT válido, cuenta activa y rol ADMINISTRADOR.",
+        "responses": {
+          "201": {
+            "description": "Artesano creado correctamente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtesanoDetalle"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cuerpo inválido, rubro/localidad inexistente o cabecera Bearer mal formada."
+          },
+          "401": {
+            "description": "Token ausente o inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                },
+                "example": {
+                  "error": "Se requiere un token de acceso."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ADMINISTRADOR."
+          },
+          "409": {
+            "description": "Conflicto con registros existentes (usuario ya asociado)."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NuevoArtesano"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/artesanos/me": {
+      "get": {
+        "tags": [
+          "Artesanos"
+        ],
+        "summary": "Consultar mi perfil de artesano",
+        "description": "Requiere JWT válido, cuenta activa y rol ARTESANO.",
+        "responses": {
+          "200": {
+            "description": "Perfil del artesano autenticado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PerfilArtesano"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente, inválido, vencido o revocado; cuenta inexistente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                },
+                "example": {
+                  "error": "Se requiere un token de acceso."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ARTESANO.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                },
+                "example": {
+                  "error": "No tiene permiso para esta operación."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No se encontró un perfil de artesano asociado a este usuario.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                },
+                "example": {
+                  "error": "No se encontró un perfil de artesano asociado a este usuario."
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/artesanos/{id}": {
+      "get": {
+        "tags": [
+          "Artesanos"
+        ],
+        "summary": "Obtener el detalle completo de un artesano por ID",
+        "description": "Requiere JWT válido, cuenta activa y rol ADMINISTRADOR.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID del artesano.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Detalle completo del artesano.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtesanoDetalle"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID inválido o cabecera Bearer mal formada.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                },
+                "example": {
+                  "error": "El ID debe ser un número entero positivo"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Token ausente o inválido."
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ADMINISTRADOR."
+          },
+          "404": {
+            "description": "Artesano no encontrado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                },
+                "example": {
+                  "error": "Artesano no encontrado"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Artesanos"
+        ],
+        "summary": "Actualizar un artesano existente",
+        "description": "Requiere JWT válido, cuenta activa y rol ADMINISTRADOR.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID del artesano.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Artesano actualizado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ArtesanoDetalle"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID o cuerpo inválido, rubro/localidad inexistente o Bearer mal formado."
+          },
+          "401": {
+            "description": "Token ausente o inválido."
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ADMINISTRADOR."
+          },
+          "404": {
+            "description": "Artesano no encontrado."
+          },
+          "409": {
+            "description": "Conflicto con registros existentes."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActualizarArtesano"
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Artesanos"
+        ],
+        "summary": "Eliminar un artesano",
+        "description": "Requiere JWT válido, cuenta activa y rol ADMINISTRADOR.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID del artesano.",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 2147483647
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Artesano eliminado correctamente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MensajeExito"
+                },
+                "example": {
+                  "mensaje": "Artesano eliminado correctamente"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "ID inválido o cabecera Bearer mal formada."
+          },
+          "401": {
+            "description": "Token ausente o inválido."
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ADMINISTRADOR."
+          },
+          "404": {
+            "description": "Artesano no encontrado."
+          },
+          "409": {
+            "description": "No se puede eliminar el artesano porque posee registros asociados."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/usuarios/registro": {
+      "post": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Registrar una cuenta básica de usuario",
+        "description": "",
+        "responses": {
+          "201": {
+            "description": "Usuario registrado correctamente.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsuarioSeguro"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de registro inválidos."
+          },
+          "409": {
+            "description": "Ya existe un usuario con ese email."
+          }
+        },
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistroUsuario"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/registro-artesano": {
+      "post": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Registrar cuenta de usuario, perfil de artesano y postulación inicial",
+        "description": "",
+        "responses": {
+          "201": {
+            "description": "Usuario, artesano y solicitud PENDIENTE creados en transacción.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaRegistroArtesano"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Datos de entrada inválidos."
+          },
+          "409": {
+            "description": "El email ya está registrado o conflicto con datos existentes."
+          }
+        },
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistroArtesano"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/login": {
+      "post": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Iniciar sesión y obtener token JWT",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Inicio de sesión exitoso.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RespuestaLogin"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Cuerpo de solicitud inválido."
+          },
+          "401": {
+            "description": "Credenciales inválidas o cuenta inactiva.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                },
+                "example": {
+                  "error": "Las credenciales son inválidas."
+                }
+              }
+            }
+          }
+        },
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginUsuario"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/me": {
+      "get": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Consultar perfil y roles del usuario autenticado",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "Datos del usuario autenticado."
+          },
+          "401": {
+            "description": "Token ausente o inválido.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorApi"
+                },
+                "example": {
+                  "error": "Se requiere un token de acceso."
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Cuenta inactiva."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/usuarios/logout": {
+      "post": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Cerrar sesión y revocar el token JWT actual",
+        "description": "",
+        "responses": {
+          "204": {
+            "description": "Sesión cerrada y token revocado (sin contenido)."
+          },
+          "401": {
+            "description": "Token ausente, inválido o ya revocado."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/usuarios/registro-administrador": {
+      "post": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Crear una cuenta con rol ADMINISTRADOR",
+        "description": "Requiere JWT válido, cuenta activa y rol ADMINISTRADOR.",
+        "responses": {
+          "201": {
+            "description": "Administrador creado correctamente."
+          },
+          "400": {
+            "description": "Cuerpo inválido o cabecera Bearer mal formada."
+          },
+          "401": {
+            "description": "Token ausente o inválido."
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ADMINISTRADOR."
+          },
+          "409": {
+            "description": "El email ya se encuentra registrado."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegistroUsuario"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/asignar-artesano": {
+      "post": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Asociar un perfil de artesano y rol ARTESANO a un administrador",
+        "description": "Requiere JWT válido, cuenta activa y rol ADMINISTRADOR.",
+        "responses": {
+          "201": {
+            "description": "Perfil de artesano creado y asociado."
+          },
+          "400": {
+            "description": "Cuerpo inválido o cabecera Bearer mal formada."
+          },
+          "401": {
+            "description": "Token ausente o inválido."
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ADMINISTRADOR."
+          },
+          "409": {
+            "description": "Requiere administrador activo sin perfil de artesano previo."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AsignarArtesano"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/{id}/roles": {
+      "post": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Asignar rol ADMINISTRADOR a un usuario",
+        "description": "Requiere JWT válido, cuenta activa y rol ADMINISTRADOR.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID del usuario.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Rol ADMINISTRADOR asignado.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MensajeExito"
+                },
+                "example": {
+                  "mensaje": "Rol ADMINISTRADOR asignado."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "UUID o rol inválido."
+          },
+          "401": {
+            "description": "Token ausente o inválido."
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ADMINISTRADOR."
+          },
+          "404": {
+            "description": "Usuario no encontrado."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AsignarRol"
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/usuarios/{id}/roles/{rol}": {
+      "delete": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Retirar un rol (ARTESANO o ADMINISTRADOR) a un usuario",
+        "description": "Requiere JWT válido, cuenta activa y rol ADMINISTRADOR.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID del usuario.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "rol",
+            "in": "path",
+            "required": true,
+            "description": "Nombre del rol a retirar.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "ARTESANO",
+                "ADMINISTRADOR"
+              ]
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Rol retirado correctamente (sin contenido)."
+          },
+          "400": {
+            "description": "Parámetros inválidos."
+          },
+          "401": {
+            "description": "Token ausente o inválido."
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ADMINISTRADOR."
+          },
+          "404": {
+            "description": "Usuario o asignación de rol no encontrada."
+          },
+          "409": {
+            "description": "No se puede retirar el último administrador activo."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/api/usuarios/{id}/activo": {
+      "patch": {
+        "tags": [
+          "Usuarios"
+        ],
+        "summary": "Activar o desactivar la cuenta de un usuario",
+        "description": "Requiere JWT válido, cuenta activa y rol ADMINISTRADOR.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "UUID del usuario.",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estado de la cuenta actualizado."
+          },
+          "400": {
+            "description": "UUID o cuerpo inválido."
+          },
+          "401": {
+            "description": "Token ausente o inválido."
+          },
+          "403": {
+            "description": "Cuenta inactiva o se requiere rol ADMINISTRADOR."
+          },
+          "404": {
+            "description": "Usuario no encontrado."
+          },
+          "409": {
+            "description": "No se puede desactivar el último administrador activo."
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActualizarActivo"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "ActualizarActivo": {
+        "type": "object",
+        "properties": {
+          "activo": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "activo"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "activo": true
+        }
+      },
+      "ActualizarArtesano": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rubro_id": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          },
+          "localidad_id": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          },
+          "usuarioId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "example": {
+          "nombre": "María Catamarca Modificado",
+          "rubro_id": 2,
+          "localidad_id": 1
+        }
+      },
+      "ActualizarPostulacion": {
+        "type": "object",
+        "properties": {
+          "artesano_id": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          },
+          "anio_id": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          },
+          "estado": {
+            "default": "PENDIENTE",
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "APROBADA",
+              "RECHAZADA",
+              "CANCELADA"
+            ]
+          },
+          "stand_id": {
+            "nullable": true,
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          }
+        },
+        "example": {
+          "estado": "APROBADA",
+          "stand_id": 5
+        }
+      },
+      "ActualizarProducto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "descripcion": {
+            "nullable": true,
+            "type": "string",
+            "maxLength": 500
+          },
+          "precio": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 99999999.99
+          },
+          "categoria_id": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          }
+        },
+        "example": {
+          "nombre": "Poncho de Vicuña Especial",
+          "descripcion": "Edición limitada tejida a mano",
+          "precio": 280000,
+          "categoria_id": 1
+        }
+      },
+      "ActualizarStand": {
+        "type": "object",
+        "properties": {
+          "numero": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          },
+          "sector_id": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          },
+          "disponible": {
+            "type": "boolean"
+          }
+        },
+        "example": {
+          "numero": 15,
+          "sector_id": 1,
+          "disponible": false
+        }
+      },
+      "ArtesanoDetalle": {
+        "type": "object",
+        "required": [
+          "id",
+          "nombre",
+          "usuario",
+          "rubro",
+          "localidad",
+          "productos",
+          "postulaciones"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "usuario": {
+            "type": "object",
+            "required": [
+              "id",
+              "nombre",
+              "email",
+              "activo",
+              "roles"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "nombre": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string",
+                "format": "email"
+              },
+              "activo": {
+                "type": "boolean"
+              },
+              "roles": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "rol": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "nombre": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "rubro": {
+            "type": "object",
+            "required": [
+              "id",
+              "nombre"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "nombre": {
+                "type": "string"
+              }
+            }
+          },
+          "localidad": {
+            "type": "object",
+            "required": [
+              "id",
+              "nombre",
+              "provincia"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "nombre": {
+                "type": "string"
+              },
+              "provincia": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "nombre"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "integer"
+                  },
+                  "nombre": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          },
+          "productos": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "nombre": {
+                  "type": "string"
+                },
+                "descripcion": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "precio": {
+                  "type": "number"
+                },
+                "categoria": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "nombre": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "postulaciones": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "estado": {
+                  "type": "string"
+                },
+                "anio": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "anio": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "stand": {
+                  "type": "object",
+                  "nullable": true,
+                  "properties": {
+                    "id": {
+                      "type": "integer"
+                    },
+                    "numero": {
+                      "type": "integer"
+                    },
+                    "disponible": {
+                      "type": "boolean"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "example": {
+          "id": 1,
+          "nombre": "María Catamarca",
+          "usuario": {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "nombre": "María Catamarca",
+            "email": "maria@poncho.gob.ar",
+            "activo": true,
+            "roles": [
+              {
+                "rol": {
+                  "id": 2,
+                  "nombre": "ARTESANO"
+                }
+              }
+            ]
+          },
+          "rubro": {
+            "id": 1,
+            "nombre": "Textil"
+          },
+          "localidad": {
+            "id": 1,
+            "nombre": "Belén",
+            "provincia": {
+              "id": 1,
+              "nombre": "Catamarca"
+            }
+          },
+          "productos": [],
+          "postulaciones": []
+        }
+      },
+      "ArtesanoResumen": {
+        "type": "object",
+        "required": [
+          "nombre",
+          "rubro",
+          "localidad"
+        ],
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "rubro": {
+            "type": "object",
+            "required": [
+              "nombre"
+            ],
+            "properties": {
+              "nombre": {
+                "type": "string"
+              }
+            }
+          },
+          "localidad": {
+            "type": "object",
+            "required": [
+              "nombre",
+              "provincia"
+            ],
+            "properties": {
+              "nombre": {
+                "type": "string"
+              },
+              "provincia": {
+                "type": "object",
+                "required": [
+                  "nombre"
+                ],
+                "properties": {
+                  "nombre": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "example": {
+          "nombre": "María Catamarca",
+          "rubro": {
+            "nombre": "Textil"
+          },
+          "localidad": {
+            "nombre": "Belén",
+            "provincia": {
+              "nombre": "Catamarca"
+            }
+          }
+        }
+      },
+      "AsignarArtesano": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "rubro_id": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          },
+          "localidad_id": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          },
+          "usuarioId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "nombre",
+          "rubro_id",
+          "localidad_id",
+          "usuarioId"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "usuarioId": "550e8400-e29b-41d4-a716-446655440000",
+          "nombre": "Administrador Artesano",
+          "rubro_id": 1,
+          "localidad_id": 1
+        }
+      },
+      "AsignarRol": {
+        "type": "object",
+        "properties": {
+          "rol": {
+            "type": "string",
+            "enum": [
+              "ADMINISTRADOR"
+            ]
+          }
+        },
+        "required": [
+          "rol"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "rol": "ADMINISTRADOR"
+        }
+      },
+      "ErrorApi": {
+        "type": "object",
+        "required": [
+          "error"
+        ],
+        "properties": {
+          "error": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "error": "Se requiere un token de acceso."
+        }
+      },
+      "ListadoArtesanos": {
+        "type": "object",
+        "required": [
+          "datos",
+          "paginacion"
+        ],
+        "properties": {
+          "datos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ArtesanoResumen"
+            }
+          },
+          "paginacion": {
+            "$ref": "#/components/schemas/Paginacion"
+          }
+        },
+        "example": {
+          "datos": [
+            {
+              "nombre": "María Catamarca",
+              "rubro": {
+                "nombre": "Textil"
+              },
+              "localidad": {
+                "nombre": "Belén",
+                "provincia": {
+                  "nombre": "Catamarca"
+                }
+              }
+            }
+          ],
+          "paginacion": {
+            "pagina": 1,
+            "limite": 10,
+            "total": 1,
+            "totalPaginas": 1
+          }
+        }
+      },
+      "ListadoPostulaciones": {
+        "type": "object",
+        "required": [
+          "datos",
+          "paginacion"
+        ],
+        "properties": {
+          "datos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Postulacion"
+            }
+          },
+          "paginacion": {
+            "$ref": "#/components/schemas/Paginacion"
+          }
+        },
+        "example": {
+          "datos": [
+            {
+              "id": 1,
+              "estado": "PENDIENTE",
+              "anio": 2026,
+              "artesano": {
+                "nombre": "María Catamarca",
+                "rubro": "Textil"
+              },
+              "stand": null
+            }
+          ],
+          "paginacion": {
+            "pagina": 1,
+            "limite": 10,
+            "total": 1,
+            "totalPaginas": 1
+          }
+        }
+      },
+      "ListadoProductos": {
+        "type": "object",
+        "required": [
+          "datos",
+          "paginacion"
+        ],
+        "properties": {
+          "datos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ProductoResumen"
+            }
+          },
+          "paginacion": {
+            "$ref": "#/components/schemas/Paginacion"
+          }
+        },
+        "example": {
+          "datos": [
+            {
+              "nombre": "Poncho de Vicuña Tradicional",
+              "precio": 250000.5,
+              "categoria": {
+                "nombre": "Indumentaria Textil"
+              },
+              "artesano": {
+                "nombre": "María Catamarca"
+              }
+            }
+          ],
+          "paginacion": {
+            "pagina": 1,
+            "limite": 10,
+            "total": 1,
+            "totalPaginas": 1
+          }
+        }
+      },
+      "ListadoStands": {
+        "type": "object",
+        "required": [
+          "datos",
+          "paginacion"
+        ],
+        "properties": {
+          "datos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Stand"
+            }
+          },
+          "paginacion": {
+            "$ref": "#/components/schemas/Paginacion"
+          }
+        },
+        "example": {
+          "datos": [
+            {
+              "numero": 15,
+              "pabellon": "Pabellón Peregrina Zárate",
+              "ocupado": false
+            }
+          ],
+          "paginacion": {
+            "pagina": 1,
+            "limite": 10,
+            "total": 1,
+            "totalPaginas": 1
+          }
+        }
+      },
+      "LoginUsuario": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "example": {
+          "email": "maria@poncho.gob.ar",
+          "password": "ClaveSegura2026!"
+        }
+      },
+      "MensajeExito": {
+        "type": "object",
+        "required": [
+          "mensaje"
+        ],
+        "properties": {
+          "mensaje": {
+            "type": "string"
+          }
+        },
+        "example": {
+          "mensaje": "Operación realizada correctamente"
+        }
+      },
+      "NuevaPostulacion": {
+        "type": "object",
+        "properties": {
+          "artesano_id": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          },
+          "anio_id": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          },
+          "estado": {
+            "default": "PENDIENTE",
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "APROBADA",
+              "RECHAZADA",
+              "CANCELADA"
+            ]
+          },
+          "stand_id": {
+            "nullable": true,
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "artesano_id",
+          "anio_id"
+        ],
+        "example": {
+          "artesano_id": 1,
+          "anio_id": 1,
+          "estado": "PENDIENTE",
+          "stand_id": null
+        }
+      },
+      "NuevoArtesano": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1
+          },
+          "rubro_id": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          },
+          "localidad_id": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          },
+          "usuarioId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "nombre",
+          "rubro_id",
+          "localidad_id",
+          "usuarioId"
+        ],
+        "example": {
+          "nombre": "María Catamarca",
+          "rubro_id": 1,
+          "localidad_id": 1,
+          "usuarioId": "550e8400-e29b-41d4-a716-446655440000"
+        }
+      },
+      "NuevoProducto": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "descripcion": {
+            "nullable": true,
+            "type": "string",
+            "maxLength": 500
+          },
+          "precio": {
+            "type": "number",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 99999999.99
+          },
+          "categoria_id": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "nombre",
+          "precio",
+          "categoria_id"
+        ],
+        "example": {
+          "nombre": "Poncho de Vicuña Tradicional",
+          "descripcion": "Tejido en telar criollo con lana de vicuña",
+          "precio": 250000.5,
+          "categoria_id": 1
+        }
+      },
+      "NuevoStand": {
+        "type": "object",
+        "properties": {
+          "numero": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          },
+          "sector_id": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          },
+          "disponible": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "numero",
+          "sector_id"
+        ],
+        "example": {
+          "numero": 15,
+          "sector_id": 1,
+          "disponible": true
+        }
+      },
+      "Paginacion": {
+        "type": "object",
+        "required": [
+          "pagina",
+          "limite",
+          "total",
+          "totalPaginas"
+        ],
+        "properties": {
+          "pagina": {
+            "type": "integer"
+          },
+          "limite": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "totalPaginas": {
+            "type": "integer"
+          }
+        },
+        "example": {
+          "pagina": 1,
+          "limite": 10,
+          "total": 25,
+          "totalPaginas": 3
+        }
+      },
+      "PerfilArtesano": {
+        "type": "object",
+        "required": [
+          "id",
+          "nombre",
+          "rubro",
+          "localidad"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "rubro": {
+            "type": "object",
+            "required": [
+              "id",
+              "nombre"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "nombre": {
+                "type": "string"
+              }
+            }
+          },
+          "localidad": {
+            "type": "object",
+            "required": [
+              "id",
+              "nombre",
+              "provincia"
+            ],
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "nombre": {
+                "type": "string"
+              },
+              "provincia": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "nombre"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "integer"
+                  },
+                  "nombre": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "example": {
+          "id": 1,
+          "nombre": "María Catamarca",
+          "rubro": {
+            "id": 1,
+            "nombre": "Textil"
+          },
+          "localidad": {
+            "id": 1,
+            "nombre": "Belén",
+            "provincia": {
+              "id": 1,
+              "nombre": "Catamarca"
+            }
+          }
+        }
+      },
+      "Postulacion": {
+        "type": "object",
+        "required": [
+          "id",
+          "estado",
+          "anio",
+          "artesano",
+          "stand"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "estado": {
+            "type": "string",
+            "enum": [
+              "PENDIENTE",
+              "APROBADA",
+              "RECHAZADA",
+              "CANCELADA"
+            ]
+          },
+          "anio": {
+            "type": "integer",
+            "nullable": true
+          },
+          "artesano": {
+            "type": "object",
+            "properties": {
+              "nombre": {
+                "type": "string",
+                "nullable": true
+              },
+              "rubro": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          },
+          "stand": {
+            "type": "object",
+            "nullable": true,
+            "properties": {
+              "numero": {
+                "type": "integer"
+              },
+              "pabellon": {
+                "type": "string",
+                "nullable": true
+              }
+            }
+          }
+        },
+        "example": {
+          "id": 1,
+          "estado": "PENDIENTE",
+          "anio": 2026,
+          "artesano": {
+            "nombre": "María Catamarca",
+            "rubro": "Textil"
+          },
+          "stand": null
+        }
+      },
+      "Producto": {
+        "type": "object",
+        "required": [
+          "id",
+          "nombre",
+          "precio",
+          "categoria",
+          "artesano"
+        ],
+        "properties": {
+          "id": {
+            "type": "integer"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "precio": {
+            "type": "number"
+          },
+          "categoria": {
+            "type": "object",
+            "required": [
+              "nombre"
+            ],
+            "properties": {
+              "nombre": {
+                "type": "string"
+              }
+            }
+          },
+          "artesano": {
+            "type": "object",
+            "required": [
+              "nombre"
+            ],
+            "properties": {
+              "nombre": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "example": {
+          "id": 10,
+          "nombre": "Poncho de Vicuña Tradicional",
+          "precio": 250000.5,
+          "categoria": {
+            "nombre": "Indumentaria Textil"
+          },
+          "artesano": {
+            "nombre": "María Catamarca"
+          }
+        }
+      },
+      "ProductoResumen": {
+        "type": "object",
+        "required": [
+          "nombre",
+          "precio",
+          "categoria",
+          "artesano"
+        ],
+        "properties": {
+          "nombre": {
+            "type": "string"
+          },
+          "precio": {
+            "type": "number"
+          },
+          "categoria": {
+            "type": "object",
+            "required": [
+              "nombre"
+            ],
+            "properties": {
+              "nombre": {
+                "type": "string"
+              }
+            }
+          },
+          "artesano": {
+            "type": "object",
+            "required": [
+              "nombre"
+            ],
+            "properties": {
+              "nombre": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "example": {
+          "nombre": "Poncho de Vicuña Tradicional",
+          "precio": 250000.5,
+          "categoria": {
+            "nombre": "Indumentaria Textil"
+          },
+          "artesano": {
+            "nombre": "María Catamarca"
+          }
+        }
+      },
+      "RegistroArtesano": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 120
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          },
+          "rubro_id": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          },
+          "localidad_id": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          },
+          "anio_id": {
+            "type": "integer",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "nombre",
+          "email",
+          "password",
+          "rubro_id",
+          "localidad_id"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "nombre": "María Catamarca",
+          "email": "maria@poncho.gob.ar",
+          "password": "ClaveSegura2026!",
+          "rubro_id": 1,
+          "localidad_id": 1,
+          "anio_id": 1
+        }
+      },
+      "RegistroUsuario": {
+        "type": "object",
+        "properties": {
+          "nombre": {
+            "type": "string",
+            "minLength": 2
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8
+          }
+        },
+        "required": [
+          "nombre",
+          "email",
+          "password"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "nombre": "Juan Pérez",
+          "email": "juan.perez@poncho.gob.ar",
+          "password": "ClaveSegura2026!"
+        }
+      },
+      "ResolverPostulacion": {
+        "type": "object",
+        "properties": {
+          "estado": {
+            "type": "string",
+            "enum": [
+              "APROBADA",
+              "RECHAZADA",
+              "CANCELADA"
+            ]
+          }
+        },
+        "required": [
+          "estado"
+        ],
+        "additionalProperties": false,
+        "example": {
+          "estado": "APROBADA"
+        }
+      },
+      "RespuestaLogin": {
+        "type": "object",
+        "required": [
+          "mensaje",
+          "token",
+          "usuario"
+        ],
+        "properties": {
+          "mensaje": {
+            "type": "string"
+          },
+          "token": {
+            "type": "string"
+          },
+          "usuario": {
+            "type": "object",
+            "required": [
+              "id",
+              "nombre",
+              "email"
+            ],
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid"
+              },
+              "nombre": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string",
+                "format": "email"
+              }
+            }
+          }
+        },
+        "example": {
+          "mensaje": "Inicio de sesión exitoso.",
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+          "usuario": {
+            "id": "550e8400-e29b-41d4-a716-446655440000",
+            "nombre": "María Catamarca",
+            "email": "maria@poncho.gob.ar"
+          }
+        }
+      },
+      "RespuestaRegistroArtesano": {
+        "type": "object",
+        "required": [
+          "id",
+          "nombre",
+          "email",
+          "activo",
+          "artesano",
+          "postulacion"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "activo": {
+            "type": "boolean"
+          },
+          "artesano": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "rubro_id": {
+                "type": "integer"
+              },
+              "localidad_id": {
+                "type": "integer"
+              }
+            }
+          },
+          "postulacion": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "integer"
+              },
+              "anio_id": {
+                "type": "integer"
+              },
+              "estado": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "example": {
+          "id": "550e8400-e29b-41d4-a716-446655440000",
+          "nombre": "María Catamarca",
+          "email": "maria@poncho.gob.ar",
+          "activo": true,
+          "artesano": {
+            "id": 1,
+            "rubro_id": 1,
+            "localidad_id": 1
+          },
+          "postulacion": {
+            "id": 1,
+            "anio_id": 1,
+            "estado": "PENDIENTE"
+          }
+        }
+      },
+      "Stand": {
+        "type": "object",
+        "required": [
+          "numero",
+          "pabellon",
+          "ocupado"
+        ],
+        "properties": {
+          "numero": {
+            "type": "integer"
+          },
+          "pabellon": {
+            "type": "string",
+            "nullable": true
+          },
+          "ocupado": {
+            "type": "boolean"
+          },
+          "artesano": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "example": {
+          "numero": 15,
+          "pabellon": "Pabellón Peregrina Zárate",
+          "ocupado": false
+        }
+      },
+      "UsuarioSeguro": {
+        "type": "object",
+        "required": [
+          "id",
+          "nombre",
+          "email",
+          "activo"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "nombre": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "activo": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "example": {
+          "id": "550e8400-e29b-41d4-a716-446655440000",
+          "nombre": "Juan Pérez",
+          "email": "juan.perez@poncho.gob.ar",
+          "activo": true,
+          "createdAt": "2026-11-02T18:00:00.000Z",
+          "updatedAt": "2026-11-02T18:00:00.000Z"
+        }
+      }
+    }
+  }
+}

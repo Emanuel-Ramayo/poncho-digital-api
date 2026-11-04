@@ -61,8 +61,9 @@ test("POST /api/postulaciones crea una postulación pública PENDIENTE", async (
 
   assert.equal(respuesta.status, 201);
   assert.equal(respuesta.body.estado, "PENDIENTE");
-  assert.equal(respuesta.body.artesano_id, artesano.id);
-  assert.equal(respuesta.body.anio_id, datosBase.anio_id);
+  // La proyección de main devuelve el nombre del artesano y el año como número
+  assert.equal(respuesta.body.artesano.nombre, "Artesano Test");
+  assert.equal(respuesta.body.anio, new Date().getFullYear());
 });
 
 // Verifica la unicidad artesano + año (409)

@@ -1,19 +1,46 @@
 import prisma from "../config/prisma.js";
 
-const includeCompletoStand = {
+// Proyección de base de datos para recuperar solo los datos estrictamente necesarios
+const selectBaseStand = {
+  id: true,
+  numero: true,
+  disponible: true,
   sector: {
-    include: {
-      pabellon: true
+    select: {
+      nombre: true,
+      pabellon: {
+        select: {
+          nombre: true
+        }
+      }
     }
   },
   postulaciones: {
+    where: {
+      estado: "APROBADA"
+    },
+    take: 1,
     select: {
-      id: true,
-      estado: true,
-      artesano_id: true,
-      anio_id: true
+      artesano: {
+        select: {
+          nombre: true
+        }
+      }
     }
   }
+};
+
+// Formatea la salida limpia: numero/nombre del stand, pabellon, ocupado y artesano si está ocupado
+const formatearRespuestaStand = (stand) => {
+  const estaOcupado = !stand.disponible;
+  const nombreArtesano = stand.postulaciones?.[0]?.artesano?.nombre ?? null;
+
+  return {
+    numero: stand.numero,
+    pabellon: stand.sector?.pabellon?.nombre ?? null,
+    ocupado: estaOcupado,
+    ...(estaOcupado && { artesano: nombreArtesano })
+  };
 };
 
 export const listarStands = async ({
@@ -52,13 +79,13 @@ export const listarStands = async ({
       orderBy: { [ordenPor]: direccion },
       skip,
       take: limite,
-      include: includeCompletoStand
+      select: selectBaseStand
     }),
     prisma.stand.count({ where })
   ]);
 
   return {
-    datos: stands,
+    datos: stands.map(formatearRespuestaStand),
     paginacion: {
       pagina,
       limite,
@@ -69,25 +96,35 @@ export const listarStands = async ({
 };
 
 export const obtenerStand = async (id) => {
-  return await prisma.stand.findUnique({
+  const stand = await prisma.stand.findUnique({
     where: { id: Number(id) },
-    include: includeCompletoStand
+    select: selectBaseStand
   });
+
+  if (!stand) {
+    return null;
+  }
+
+  return formatearRespuestaStand(stand);
 };
 
 export const crearStand = async (datos) => {
-  return await prisma.stand.create({
+  const nuevoStand = await prisma.stand.create({
     data: datos,
-    include: includeCompletoStand
+    select: selectBaseStand
   });
+
+  return formatearRespuestaStand(nuevoStand);
 };
 
 export const actualizarStand = async (id, datos) => {
-  return await prisma.stand.update({
+  const standActualizado = await prisma.stand.update({
     where: { id: Number(id) },
     data: datos,
-    include: includeCompletoStand
+    select: selectBaseStand
   });
+
+  return formatearRespuestaStand(standActualizado);
 };
 
 export const eliminarStand = async (id) => {

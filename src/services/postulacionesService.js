@@ -1,26 +1,58 @@
 import prisma from "../config/prisma.js";
 
-const includeCompletoPostulacion = {
+// Proyección de base de datos con selección explícita (select)
+// Evita transferir usuarioId, fechas de auditoría y claves foráneas redundantes
+const selectBasePostulacion = {
+  id: true,
+  estado: true,
+  anio: {
+    select: {
+      anio: true
+    }
+  },
   artesano: {
-    include: {
-      rubro: true,
-      localidad: {
-        include: {
-          provincia: true
+    select: {
+      nombre: true,
+      rubro: {
+        select: {
+          nombre: true
         }
       }
     }
   },
-  anio: true,
   stand: {
-    include: {
+    select: {
+      numero: true,
       sector: {
-        include: {
-          pabellon: true
+        select: {
+          pabellon: {
+            select: {
+              nombre: true
+            }
+          }
         }
       }
     }
   }
+};
+
+// Formatea la respuesta con la estructura limpia solicitada
+const formatearPostulacion = (postulacion) => {
+  return {
+    id: postulacion.id,
+    estado: postulacion.estado,
+    anio: postulacion.anio?.anio ?? null,
+    artesano: {
+      nombre: postulacion.artesano?.nombre ?? null,
+      rubro: postulacion.artesano?.rubro?.nombre ?? null
+    },
+    stand: postulacion.stand
+      ? {
+          numero: postulacion.stand.numero,
+          pabellon: postulacion.stand.sector?.pabellon?.nombre ?? null
+        }
+      : null
+  };
 };
 
 export const listarPostulaciones = async ({
@@ -52,13 +84,13 @@ export const listarPostulaciones = async ({
       orderBy: { [ordenPor]: direccion },
       skip,
       take: Number(limite),
-      include: includeCompletoPostulacion
+      select: selectBasePostulacion
     }),
     prisma.postulacion.count({ where })
   ]);
 
   return {
-    datos: postulaciones,
+    datos: postulaciones.map(formatearPostulacion),
     paginacion: {
       pagina: Number(pagina),
       limite: Number(limite),
@@ -69,25 +101,35 @@ export const listarPostulaciones = async ({
 };
 
 export const obtenerPostulacion = async (id) => {
-  return await prisma.postulacion.findUnique({
+  const postulacion = await prisma.postulacion.findUnique({
     where: { id: Number(id) },
-    include: includeCompletoPostulacion
+    select: selectBasePostulacion
   });
+
+  if (!postulacion) {
+    return null;
+  }
+
+  return formatearPostulacion(postulacion);
 };
 
 export const crearPostulacion = async (datos) => {
-  return await prisma.postulacion.create({
+  const nueva = await prisma.postulacion.create({
     data: datos,
-    include: includeCompletoPostulacion
+    select: selectBasePostulacion
   });
+
+  return formatearPostulacion(nueva);
 };
 
 export const actualizarPostulacion = async (id, datos) => {
-  return await prisma.postulacion.update({
+  const actualizada = await prisma.postulacion.update({
     where: { id: Number(id) },
     data: datos,
-    include: includeCompletoPostulacion
+    select: selectBasePostulacion
   });
+
+  return formatearPostulacion(actualizada);
 };
 
 export const eliminarPostulacion = async (id) => {

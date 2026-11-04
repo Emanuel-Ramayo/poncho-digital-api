@@ -1,6 +1,8 @@
 // src/app.js
 import "./config/entorno.js"; // carga .env o .env.test según NODE_ENV
 import express from 'express';
+import swaggerUi from 'swagger-ui-express';
+import { readFileSync } from 'node:fs';
 import postulacionesRoutes from './routes/postulacionesRoutes.js';
 import standsRoutes from './routes/standsRoutes.js';
 import productosRoutes from './routes/productosRoutes.js';
@@ -28,15 +30,23 @@ const PORT = process.env.PORT || 3000;
 
 // Ruta de bienvenida
 app.get('/', (req, res) => {
+    // #swagger.ignore = true
     res.send('Bienvenido a la API REST de Poncho digital');
 });
+
+// Documentación Swagger generada con npm run docs
+const swaggerDocument = JSON.parse(
+    readFileSync(new URL("../swagger-output.json", import.meta.url), "utf8"),
+);
+app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 app.use("/api/postulaciones", postulacionesRoutes);
 app.use("/api/stands", standsRoutes);
 app.use("/api/productos", productosRoutes);
 app.use("/api/artesanos", artesanosRoutes);
 app.use("/api/usuarios", usuariosRoutes);
-app.use(noEncontrado); //Middleware para manejar rutas no encontradas
-app.use(manejadorErrores);  //Middleware para manejar errores
+app.use(noEncontrado); // Middleware para manejar rutas no encontradas
+app.use(manejadorErrores); // Middleware para manejar errores
 
 // En modo test NO se abre el puerto ni se inicia la limpieza periódica:
 // Supertest recibe la app exportada y la usa directamente.
