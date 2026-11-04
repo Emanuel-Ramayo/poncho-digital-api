@@ -2720,23 +2720,6 @@
             "minimum": 0,
             "exclusiveMinimum": true,
             "maximum": 9007199254740991
-          },
-          "estado": {
-            "default": "PENDIENTE",
-            "type": "string",
-            "enum": [
-              "PENDIENTE",
-              "APROBADA",
-              "RECHAZADA",
-              "CANCELADA"
-            ]
-          },
-          "stand_id": {
-            "nullable": true,
-            "type": "integer",
-            "minimum": 0,
-            "exclusiveMinimum": true,
-            "maximum": 9007199254740991
           }
         },
         "required": [
@@ -2745,9 +2728,7 @@
         ],
         "example": {
           "artesano_id": 1,
-          "anio_id": 1,
-          "estado": "PENDIENTE",
-          "stand_id": null
+          "anio_id": 1
         }
       },
       "NuevoArtesano": {

@@ -526,16 +526,17 @@ export const ListadoStands = {
 // ==========================================
 
 export const NuevaPostulacion = {
-  ...z.toJSONSchema(postulacionSchema, {
-    target: "openapi-3.0",
-    io: "input"
-  }),
+  ...z.toJSONSchema(
+    postulacionSchema.pick({ artesano_id: true, anio_id: true }),
+    {
+      target: "openapi-3.0",
+      io: "input"
+    }
+  ),
   required: ["artesano_id", "anio_id"],
   example: {
     artesano_id: 1,
-    anio_id: 1,
-    estado: "PENDIENTE",
-    stand_id: null
+    anio_id: 1
   }
 };
 

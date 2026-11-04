@@ -34,10 +34,11 @@ app.get('/', (req, res) => {
     res.send('Bienvenido a la API REST de Poncho digital');
 });
 
-// Documentación Swagger generada con npm run docs
+// Documentación Swagger generada con npm run docs (disponible en /docs y /api/docs)
 const swaggerDocument = JSON.parse(
     readFileSync(new URL("../swagger-output.json", import.meta.url), "utf8"),
 );
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use("/api/postulaciones", postulacionesRoutes);
