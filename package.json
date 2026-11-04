@@ -7,10 +7,12 @@
     "start": "node src/app.js",
     "dev": "node --watch src/app.js",
     "docs": "node generar-docs.js",
-    "test:preparar": "node src/scripts/prepararBdPrueba.js",
+    "db:test:preparar": "node --env-file=.env.test src/scripts/prepararBdPrueba.js",
+    "test:preparar": "node --env-file=.env.test src/scripts/prepararBdPrueba.js",
     "test:schemas": "node --test tests/artesanos-schema.test.js tests/productos-schema.test.js tests/stands-schema.test.js",
+    "test:integracion": "node --env-file=.env.test --import ./tests/configuracion.js --test --test-concurrency=1 tests/productos-integracion.test.js tests/integration/postulaciones.test.js tests/integration/usuarios.test.js",
     "test:optimizacion": "node src/scripts/medirOptimizacion.js",
-    "test": "node --import ./tests/configuracion.js --test --test-concurrency=1 \"tests/**/*.test.js\""
+    "test": "node --env-file=.env.test --import ./tests/configuracion.js --test --test-concurrency=1 \"tests/**/*.test.js\""
   },
   "repository": {
     "type": "git",

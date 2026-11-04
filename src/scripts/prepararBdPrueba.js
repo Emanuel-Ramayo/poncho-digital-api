@@ -1,21 +1,22 @@
 // src/scripts/prepararBdPrueba.js
-// Aplica las migraciones de Prisma sobre la BD de PRUEBAS (DATABASE_URL_TEST).
-// Uso: npm run test:preparar
+// Aplica las migraciones de Prisma sobre la BD de PRUEBAS.
+// Uso: npm run db:test:preparar  (o npm run test:preparar)
 import "./forzarTest.js"; // debe ir primero: fuerza NODE_ENV=test
 import "../config/entorno.js";
 import { spawnSync } from "node:child_process";
 
-const urlTest = process.env.DATABASE_URL_TEST;
+const urlTest = process.env.DATABASE_URL_TEST || process.env.DATABASE_URL;
 
 // Valida que exista la URL de la BD de pruebas
 if (!urlTest?.trim()) {
-  console.error("Falta DATABASE_URL_TEST (revisar .env.test).");
+  console.error("Falta DATABASE_URL en .env.test.");
   process.exit(1);
 }
 
-// Valida que no se apunte a la BD de desarrollo
-if (urlTest === process.env.DATABASE_URL) {
-  console.error("DATABASE_URL_TEST no puede ser igual a DATABASE_URL.");
+// Valida que el nombre de la BD contenga "test"
+const nombreBd = new URL(urlTest).pathname.toLowerCase();
+if (!nombreBd.includes("test")) {
+  console.error('El nombre de la BD de pruebas debe contener "test".');
   process.exit(1);
 }
 

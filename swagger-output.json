@@ -2143,6 +2143,7 @@
             "maximum": 9007199254740991
           }
         },
+        "additionalProperties": false,
         "example": {
           "nombre": "Poncho de Vicuña Especial",
           "descripcion": "Edición limitada tejida a mano",
@@ -2800,6 +2801,7 @@
           "precio",
           "categoria_id"
         ],
+        "additionalProperties": false,
         "example": {
           "nombre": "Poncho de Vicuña Tradicional",
           "descripcion": "Tejido en telar criollo con lana de vicuña",

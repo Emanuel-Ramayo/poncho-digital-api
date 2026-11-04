@@ -17,7 +17,7 @@ import { iniciarLimpiezaRevocaciones } from './tareas/limpiezaRevocaciones.js';
 // Indica si estamos en modo de pruebas (Supertest levanta la app por su cuenta)
 const esTest = process.env.NODE_ENV === 'test';
 
-const app = express();
+export const app = express();
 
 // Registra cada solicitud en consola (se omite en tests para no ensuciar la salida)
 if (!esTest) {
@@ -58,5 +58,5 @@ if (!esTest) {
     });
 }
 
-// Se exporta la app para poder probarla con Supertest
+// Se exporta la app (nombrada y por defecto) para poder probarla con Supertest
 export default app;

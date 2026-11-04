@@ -56,6 +56,16 @@ const casosCreacion = [
     "categoria_id decimal",
     { nombre: "Poncho", precio: 1000, categoria_id: 1.5 },
     false
+  ],
+  [
+    "campo adicional (artesanoId)",
+    { nombre: "Poncho", precio: 1000, categoria_id: 1, artesanoId: 7 },
+    false
+  ],
+  [
+    "campo adicional (artesano_id)",
+    { nombre: "Poncho", precio: 1000, categoria_id: 1, artesano_id: 7 },
+    false
   ]
 ];
 
@@ -66,9 +76,15 @@ for (const [nombre, entrada, valido] of casosCreacion) {
   });
 }
 
-test("actualizarProductoSchema: permite actualizar solo el precio", () => {
+test("actualizarProductoSchema: permite actualizar solo el precio y rechaza artesanoId", () => {
   const resultado = actualizarProductoSchema.safeParse({ precio: 95000.99 });
   assert.equal(resultado.success, true);
+
+  const conArtesanoId = actualizarProductoSchema.safeParse({
+    precio: 95000.99,
+    artesanoId: 3
+  });
+  assert.equal(conArtesanoId.success, false);
 });
 
 test("consultarProductosSchema: rechaza precioMin mayor que precioMax", () => {
@@ -78,4 +94,3 @@ test("consultarProductosSchema: rechaza precioMin mayor que precioMax", () => {
   });
   assert.equal(resultado.success, false);
 });
-

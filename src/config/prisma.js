@@ -1,6 +1,7 @@
 // src/config/prisma.js
 // Crea el cliente de Prisma. En modo test usa la BD de pruebas
-// (DATABASE_URL_TEST); en cualquier otro modo usa DATABASE_URL.
+// (DATABASE_URL cargada con --env-file=.env.test o DATABASE_URL_TEST);
+// en cualquier otro modo usa DATABASE_URL.
 import "./entorno.js";
 
 import { PrismaClient } from "@prisma/client";
@@ -12,19 +13,14 @@ const obtenerCadenaConexion = () => {
     return process.env.DATABASE_URL;
   }
 
-  const urlTest = process.env.DATABASE_URL_TEST;
+  const urlTest = process.env.DATABASE_URL_TEST || process.env.DATABASE_URL;
 
   // Sin BD de pruebas configurada, los tests no deben arrancar
   if (!urlTest?.trim()) {
-    throw new Error("Falta DATABASE_URL_TEST para ejecutar las pruebas.");
+    throw new Error("Falta DATABASE_URL en .env.test para ejecutar las pruebas.");
   }
 
-  // Protección: nunca permitir que los tests apunten a la BD de desarrollo
-  if (urlTest === process.env.DATABASE_URL) {
-    throw new Error("DATABASE_URL_TEST no puede ser igual a DATABASE_URL.");
-  }
-
-  // Protección extra: el nombre de la BD debe contener "test"
+  // Protección: el nombre de la BD de pruebas debe contener "test"
   const nombreBd = new URL(urlTest).pathname.toLowerCase();
   if (!nombreBd.includes("test")) {
     throw new Error('El nombre de la BD de pruebas debe contener "test".');

@@ -13,46 +13,48 @@ const PRECIO_MAXIMO = 99999999.99; // Decimal(10, 2)
 
 // DTO para Creación / Reemplazo (POST / PUT)
 // El artesano_id NO va en el body; se obtiene de la sesión autenticada
-export const productoSchema = z.object({
-  nombre: z
-    .string({
-      error: (iss) =>
-        iss.input === undefined
-          ? "El nombre es obligatorio"
-          : "El nombre debe ser un texto"
-    })
-    .trim()
-    .min(1, "El nombre es obligatorio")
-    .max(100, "El nombre no puede superar los 100 caracteres"),
-
-  descripcion: z
-    .string({ error: "La descripción debe ser un texto" })
-    .trim()
-    .max(500, "La descripción no puede superar los 500 caracteres")
-    .nullable()
-    .optional(),
-
-  precio: z.preprocess(
-    aNumero,
-    z
-      .number({
+export const productoSchema = z
+  .object({
+    nombre: z
+      .string({
         error: (iss) =>
           iss.input === undefined
-            ? "El precio es obligatorio"
-            : "El precio debe ser un número"
+            ? "El nombre es obligatorio"
+            : "El nombre debe ser un texto"
       })
-      .positive("El precio debe ser mayor a 0")
-      .max(PRECIO_MAXIMO, "El precio supera el máximo permitido")
-      .refine((v) => Math.abs(v * 100 - Math.round(v * 100)) < 1e-6, {
-        error: "El precio admite como máximo 2 decimales"
-      })
-  ),
+      .trim()
+      .min(1, "El nombre es obligatorio")
+      .max(100, "El nombre no puede superar los 100 caracteres"),
 
-  categoria_id: idRequerido("La categoría")
-});
+    descripcion: z
+      .string({ error: "La descripción debe ser un texto" })
+      .trim()
+      .max(500, "La descripción no puede superar los 500 caracteres")
+      .nullable()
+      .optional(),
+
+    precio: z.preprocess(
+      aNumero,
+      z
+        .number({
+          error: (iss) =>
+            iss.input === undefined
+              ? "El precio es obligatorio"
+              : "El precio debe ser un número"
+        })
+        .positive("El precio debe ser mayor a 0")
+        .max(PRECIO_MAXIMO, "El precio supera el máximo permitido")
+        .refine((v) => Math.abs(v * 100 - Math.round(v * 100)) < 1e-6, {
+          error: "El precio admite como máximo 2 decimales"
+        })
+    ),
+
+    categoria_id: idRequerido("La categoría")
+  })
+  .strict();
 
 // DTO para Actualización parcial (PUT)
-export const actualizarProductoSchema = productoSchema.partial();
+export const actualizarProductoSchema = productoSchema.partial().strict();
 
 const CAMPOS_ORDEN = [
   "id",
