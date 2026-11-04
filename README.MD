@@ -1,46 +1,53 @@
 # Poncho Digital API
 
-API REST desarrollada para el proyecto **Poncho Digital**, orientado a la gestión de artesanos, productos, stands y postulaciones.
+API REST desarrollada para el proyecto **Poncho Digital**, orientada a la gestiÃ³n de artesanos, productos, stands, usuarios y postulaciones.
 
-## Instalación
+## TecnologÃ­as
 
-Clonar el repositorio e instalar las dependencias:
+- Node.js + Express 5
+- PostgreSQL + Prisma 7
+- AutenticaciÃ³n JWT
+- ValidaciÃ³n con Zod
+- Pruebas con `node:test` + Supertest
+
+## InstalaciÃ³n
 
 ```bash
 npm install
+npx prisma generate
+npx prisma migrate deploy
 ```
 
-Para iniciar el servidor en modo desarrollo:
+Configurar las variables de entorno:
+
+```bash
+copy .env.example .env
+```
+
+Editar `.env` con la URL de PostgreSQL y el secreto JWT. Para iniciar el servidor:
 
 ```bash
 npm run dev
 ```
 
-## Endpoints disponibles
+La API queda disponible en `http://localhost:3000` y las rutas empiezan con `/api`.
 
-### Artesanos
+## DocumentaciÃ³n de la API
 
-* `GET /artesanos` → Lista todos los artesanos.
-* `GET /artesanos/:id` → Obtiene un artesano por su ID.
+- [Usuarios](docs/usuarios.md): registro, login, roles, estado de cuenta y `/me`.
+- [Postulaciones](docs/postulaciones.md): alta pÃºblica, estados, listado y resoluciÃ³n.
 
-### Productos
+### Endpoints principales
 
-* `GET /productos` → Lista todos los productos.
-* `GET /productos/:id` → Obtiene un producto por su ID.
-
-### Stands
-
-* `GET /stands` → Lista todos los stands.
-* `GET /stands/:id` → Obtiene un stand por su ID.
-
-### Postulaciones
-
-* `GET /postulaciones` → Lista todas las postulaciones.
-* `GET /postulaciones/:id` → Obtiene una postulación por su ID.
-
-> En esta etapa los datos se almacenan en memoria mediante arrays. Las operaciones de creación, modificación y eliminación se incorporarán en etapas posteriores.
+| MÃ³dulo | Base |
+| --- | --- |
+| Usuarios | `/api/usuarios` |
+| Postulaciones | `/api/postulaciones` |
+| Artesanos | `/api/artesanos` |
+| Productos | `/api/productos` |
+| Stands | `/api/stands` |
 
 ## Integrantes
 
-* Guillermo Ponessa MU:00266
-* Emanuel Ramayo MU:00369
+- Guillermo Ponessa MU:00266
+- Emanuel Ramayo MU:00369
