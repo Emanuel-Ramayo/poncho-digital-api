@@ -1,4 +1,6 @@
-import "dotenv/config";
+// src/config/jwt.js
+// Expone el secreto para firmar y verificar tokens JWT.
+import "./entorno.js";
 
 export const secretoJWT = process.env.JWT_SECRET;
 

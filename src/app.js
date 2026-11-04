@@ -1,3 +1,5 @@
+// src/app.js
+import "./config/entorno.js"; // carga .env o .env.test según NODE_ENV
 import express from 'express';
 import postulacionesRoutes from './routes/postulacionesRoutes.js';
 import standsRoutes from './routes/standsRoutes.js';
@@ -10,10 +12,21 @@ import { noEncontrado } from './middlewares/noEncontrado.js';
 import './config/jwt.js';
 import { iniciarLimpiezaRevocaciones } from './tareas/limpiezaRevocaciones.js';
 
+// Indica si estamos en modo de pruebas (Supertest levanta la app por su cuenta)
+const esTest = process.env.NODE_ENV === 'test';
+
 const app = express();
-app.use(logger); //Middleware para registrar las solicitudes entrantes
+
+// Registra cada solicitud en consola (se omite en tests para no ensuciar la salida)
+if (!esTest) {
+    app.use(logger);
+}
 app.use(express.json());
-const PORT =  3000;
+
+// Puerto configurable por variable de entorno (por defecto 3000)
+const PORT = process.env.PORT || 3000;
+
+// Ruta de bienvenida
 app.get('/', (req, res) => {
     res.send('Bienvenido a la API REST de Poncho digital');
 });
@@ -24,7 +37,15 @@ app.use("/api/artesanos", artesanosRoutes);
 app.use("/api/usuarios", usuariosRoutes);
 app.use(noEncontrado); //Middleware para manejar rutas no encontradas
 app.use(manejadorErrores);  //Middleware para manejar errores
-app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
-    iniciarLimpiezaRevocaciones();
-});
+
+// En modo test NO se abre el puerto ni se inicia la limpieza periódica:
+// Supertest recibe la app exportada y la usa directamente.
+if (!esTest) {
+    app.listen(PORT, () => {
+        console.log(`Servidor corriendo en http://localhost:${PORT}`);
+        iniciarLimpiezaRevocaciones();
+    });
+}
+
+// Se exporta la app para poder probarla con Supertest
+export default app;
