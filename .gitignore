@@ -4,6 +4,9 @@ node_modules/
 # Variables de entorno
 .env
 !.env.example
+# .env.test contiene credenciales reales: solo se versiona el ejemplo
+.env.test
+!.env.test.example
 .env.local
 .env.*.local
 
