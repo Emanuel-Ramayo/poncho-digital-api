@@ -38,7 +38,7 @@ app.get('/', (req, res) => {
 const swaggerDocument = JSON.parse(
     readFileSync(new URL("../swagger-output.json", import.meta.url), "utf8"),
 );
-app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use("/api/postulaciones", postulacionesRoutes);
