@@ -13,7 +13,7 @@ import { manejadorErrores } from './middlewares/manejadorErrores.js';
 import { noEncontrado } from './middlewares/noEncontrado.js';
 import './config/jwt.js';
 import { iniciarLimpiezaRevocaciones } from './tareas/limpiezaRevocaciones.js';
-
+import { paginaBienvenida } from "./paginaBienvenida.js";
 // Indica si estamos en modo de pruebas (Supertest levanta la app por su cuenta)
 const esTest = process.env.NODE_ENV === 'test';
 
@@ -29,9 +29,8 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 
 // Ruta de bienvenida
-app.get('/', (req, res) => {
-    // #swagger.ignore = true
-    res.send('Bienvenido a la API REST de Poncho digital');
+app.get("/", (req, res) => {
+  res.type("html").send(paginaBienvenida);
 });
 
 // Documentación Swagger generada con npm run docs (disponible en /docs y /api/docs)
@@ -40,6 +39,7 @@ const swaggerDocument = JSON.parse(
 );
 
 app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 app.use("/api/postulaciones", postulacionesRoutes);
 app.use("/api/stands", standsRoutes);
