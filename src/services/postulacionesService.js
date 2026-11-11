@@ -1,4 +1,5 @@
 import prisma from "../config/prisma.js";
+import { crearError } from "../utils/errores.js";
 
 // Proyección de base de datos con selección explícita (select)
 // Evita transferir usuarioId, fechas de auditoría y claves foráneas redundantes
@@ -114,6 +115,20 @@ export const obtenerPostulacion = async (id) => {
 };
 
 export const crearPostulacion = async (datos) => {
+  if (datos.stand_id) {
+    const standOcupado = await prisma.postulacion.findFirst({
+      where: {
+        anio_id: Number(datos.anio_id),
+        stand_id: Number(datos.stand_id)
+      },
+      select: { id: true }
+    });
+
+    if (standOcupado) {
+      throw crearError("El stand ya se encuentra asignado a otro artesano para este año", 409);
+    }
+  }
+
   const nueva = await prisma.postulacion.create({
     data: datos,
     select: selectBasePostulacion
@@ -123,8 +138,34 @@ export const crearPostulacion = async (datos) => {
 };
 
 export const actualizarPostulacion = async (id, datos) => {
+  const numId = Number(id);
+
+  if (datos.stand_id !== undefined && datos.stand_id !== null) {
+    // Obtenemos la postulación actual para conocer su año (o si viene en datos)
+    const actual = await prisma.postulacion.findUnique({
+      where: { id: numId },
+      select: { anio_id: true }
+    });
+
+    if (actual) {
+      const anioId = datos.anio_id ? Number(datos.anio_id) : actual.anio_id;
+      const standOcupado = await prisma.postulacion.findFirst({
+        where: {
+          id: { not: numId },
+          anio_id: anioId,
+          stand_id: Number(datos.stand_id)
+        },
+        select: { id: true }
+      });
+
+      if (standOcupado) {
+        throw crearError("El stand ya se encuentra asignado a otro artesano para este año", 409);
+      }
+    }
+  }
+
   const actualizada = await prisma.postulacion.update({
-    where: { id: Number(id) },
+    where: { id: numId },
     data: datos,
     select: selectBasePostulacion
   });
