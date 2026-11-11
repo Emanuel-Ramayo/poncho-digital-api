@@ -273,17 +273,14 @@ export const obtenerArtesanoPorIdUsuario = async (usuarioId) => {
       dni: true,
       rubro: {
         select: {
-          id: true,
           nombre: true
         }
       },
       localidad: {
         select: {
-          id: true,
           nombre: true,
           provincia: {
             select: {
-              id: true,
               nombre: true
             }
           }
