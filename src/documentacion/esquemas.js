@@ -176,23 +176,20 @@ export const PerfilArtesano = {
     dni: { type: "string" },
     rubro: {
       type: "object",
-      required: ["id", "nombre"],
+      required: ["nombre"],
       properties: {
-        id: { type: "integer" },
         nombre: { type: "string" }
       }
     },
     localidad: {
       type: "object",
-      required: ["id", "nombre", "provincia"],
+      required: ["nombre", "provincia"],
       properties: {
-        id: { type: "integer" },
         nombre: { type: "string" },
         provincia: {
           type: "object",
-          required: ["id", "nombre"],
+          required: ["nombre"],
           properties: {
-            id: { type: "integer" },
             nombre: { type: "string" }
           }
         }
@@ -203,11 +200,10 @@ export const PerfilArtesano = {
     id: 1,
     nombre: "María Catamarca",
     dni: "38123456",
-    rubro: { id: 1, nombre: "Textil" },
+    rubro: { nombre: "Textil" },
     localidad: {
-      id: 1,
       nombre: "Belén",
-      provincia: { id: 1, nombre: "Catamarca" }
+      provincia: { nombre: "Catamarca" }
     }
   }
 };
