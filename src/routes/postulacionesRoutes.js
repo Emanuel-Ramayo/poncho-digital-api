@@ -102,7 +102,7 @@ router.post(
        description: "Cuerpo inválido o artesano/año/stand inexistente."
      }
      #swagger.responses[409] = {
-       description: "El artesano ya posee una postulación registrada para ese año."
+       description: "Conflicto: El artesano ya posee una postulación para ese año o el stand ya está asignado."
      }
   */
   validarPostulacion,
@@ -245,7 +245,7 @@ router.put(
        description: "Postulación no encontrada."
      }
      #swagger.responses[409] = {
-       description: "El artesano ya posee una postulación registrada para ese año."
+       description: "Conflicto: El artesano ya posee una postulación para ese año o el stand ya está asignado."
      }
   */
   autenticarUsuario,

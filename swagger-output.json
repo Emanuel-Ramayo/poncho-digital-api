@@ -161,7 +161,7 @@
             "description": "Cuerpo inválido o artesano/año/stand inexistente."
           },
           "409": {
-            "description": "El artesano ya posee una postulación registrada para ese año."
+            "description": "Conflicto: El artesano ya posee una postulación para ese año o el stand ya está asignado."
           }
         },
         "security": [],
@@ -337,7 +337,7 @@
             "description": "Postulación no encontrada."
           },
           "409": {
-            "description": "El artesano ya posee una postulación registrada para ese año."
+            "description": "Conflicto: El artesano ya posee una postulación para ese año o el stand ya está asignado."
           }
         },
         "security": [

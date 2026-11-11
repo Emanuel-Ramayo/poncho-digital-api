@@ -28,6 +28,12 @@ export const crearPostulacion = async (req, res, next) => {
   } catch (error) {
     // Clave duplicada: unicidad compuesta artesano_id + anio_id
     if (error.code === "P2002") {
+      const campos = error.meta?.target || [];
+      if (Array.isArray(campos) && campos.includes("stand_id")) {
+        return next(
+          crearError("El stand ya se encuentra asignado a otro artesano para este año", 409)
+        );
+      }
       return next(
         crearError("El artesano ya posee una postulación registrada para ese año", 409)
       );
@@ -74,6 +80,12 @@ export const actualizarPostulacion = async (req, res, next) => {
     }
 
     if (error.code === "P2002") {
+      const campos = error.meta?.target || [];
+      if (Array.isArray(campos) && campos.includes("stand_id")) {
+        return next(
+          crearError("El stand ya se encuentra asignado a otro artesano para este año", 409)
+        );
+      }
       return next(
         crearError("El artesano ya posee una postulación registrada para ese año", 409)
       );
